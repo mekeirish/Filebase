@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Filebase</title>
+    <title>Filebase — Universal Asset & Media Manager</title>
     <!-- Tailwind CSS v4 & DaisyUI v5 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
@@ -17,36 +17,6 @@
             background-color: #27272a;
         }
     </style>
-<meta property="og:title" content="Filebase">
-<meta name="twitter:title" content="Filebase">
-<meta name="application-name" content="Filebase">
-<meta name="apple-mobile-web-app-title" content="Filebase">
-<meta name="description" content="Filebase">
-<meta property="og:description" content="Filebase">
-<meta name="twitter:description" content="Filebase">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon.png">
-<meta property="og:image" content="https://mekeirish.github.io/Filebase/icon.png">
-<meta name="twitter:image" content="https://mekeirish.github.io/Filebase/icon.png">
-<meta name="twitter:card" content="summary">
-<meta property="og:url" content="https://mekeirish.github.io/Filebase/">
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="./icon.png">
-<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1320x2868.png">
-<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1206x2622.png">
-<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1290x2796.png">
-<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1179x2556.png">
-<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1284x2778.png">
-<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1170x2532.png">
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1242x2688.png">
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash-828x1792.png">
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1125x2436.png">
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash-1242x2208.png">
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash-750x1334.png">
-<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash-640x1136.png">
 </head>
 <body class="text-zinc-100 min-h-screen flex flex-col justify-between p-4 sm:p-6 font-sans antialiased">
 
@@ -103,15 +73,16 @@
                 <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-zinc-700 hover:border-emerald-500/60 rounded-xl cursor-pointer bg-zinc-950/60 transition-colors group">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                         <svg class="w-7 h-7 mb-2 text-zinc-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <p id="fileDropLabel" class="text-xs text-zinc-400"><span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier (Audio, Vidéo, Image, Doc)</p>
+                        <p id="fileDropLabel" class="text-xs text-zinc-400"><span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier</p>
                     </div>
                     <input id="fileInput" type="file" class="hidden" onchange="handleFileSelect(event)" />
                 </label>
 
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <div class="relative flex-1">
-                        <span id="pathPrefix" class="absolute inset-y-0 left-3 flex items-center text-xs text-zinc-500 font-mono">dossier/</span>
-                        <input type="text" id="targetFileName" placeholder="nom-du-fichier.ext" class="input input-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full pl-22 font-mono text-xs h-11" />
+                    <div class="relative flex-1 flex items-center bg-zinc-950 border border-zinc-800 rounded-lg focus-within:border-emerald-500 overflow-hidden">
+                        <span id="pathPrefix" class="pl-3 pr-1 text-xs text-zinc-500 font-mono select-none">dossier/</span>
+                        <input type="text" id="targetFileName" placeholder="nouveau-nom" class="w-full bg-transparent border-none focus:outline-none text-xs font-mono py-3 px-1 text-zinc-100" />
+                        <span id="fileExtensionBadge" class="pr-3 pl-1 text-xs text-emerald-400 font-mono select-none bg-zinc-900/80 py-3 border-l border-zinc-800">.ext</span>
                     </div>
                     <button id="uploadBtn" onclick="uploadFile()" class="btn bg-emerald-600 hover:bg-emerald-500 text-white border-none h-11 px-6 font-semibold shadow-md shadow-emerald-950/50">
                         Envoyer
@@ -165,6 +136,7 @@
         let activeToken = localStorage.getItem(STORAGE_KEY) || '';
         let selectedFile = null;
         let detectedFolder = 'docs';
+        let fileExtension = '';
         let currentFilter = 'all';
         let allFilesCache = [];
 
@@ -264,7 +236,6 @@
             feedback.classList.remove('hidden');
         }
 
-        // Détermination automatique du dossier selon le type MIME / extension
         function resolveFolder(file) {
             const type = file.type;
             const name = file.name.toLowerCase();
@@ -275,6 +246,7 @@
             return 'docs';
         }
 
+        // Gestion de la sélection du fichier et séparation propre nom/extension
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -286,13 +258,22 @@
 
             document.getElementById('fileDropLabel').innerHTML = `<span class="text-emerald-400 font-semibold">${file.name}</span> <span class="text-zinc-500">(${(file.size / 1024).toFixed(1)} Ko)</span>`;
             
-            const cleanName = file.name
+            // Extraction sécurisée de l'extension d'origine
+            const lastDotIndex = file.name.lastIndexOf('.');
+            fileExtension = lastDotIndex !== -1 ? file.name.substring(lastDotIndex).toLowerCase() : '';
+            const rawBaseName = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
+
+            // Affichage de l'extension dans le badge à droite
+            document.getElementById('fileExtensionBadge').textContent = fileExtension;
+
+            // Nettoyage et injection du nom de base dans l'input
+            const cleanBaseName = rawBaseName
                 .toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9.\-_]/g, '');
+                .replace(/[^a-z0-9\-_]/g, '');
             
-            document.getElementById('targetFileName').value = cleanName;
+            document.getElementById('targetFileName').value = cleanBaseName;
         }
 
         const fileToBase64 = file => new Promise((resolve, reject) => {
@@ -303,20 +284,23 @@
         });
 
         async function uploadFile() {
-            const fileName = document.getElementById('targetFileName').value.trim();
+            const baseNameInput = document.getElementById('targetFileName').value.trim();
             const btn = document.getElementById('uploadBtn');
 
-            if (!selectedFile || !fileName) {
-                showToast('Sélectionne un fichier et vérifie son nom.', '⚠️');
+            if (!selectedFile || !baseNameInput) {
+                showToast('Sélectionne un fichier et saisis un nom valide.', '⚠️');
                 return;
             }
+
+            // Reconstruction automatique et infaillible du nom complet avec son extension d'origine
+            const finalFileName = baseNameInput + fileExtension;
 
             btn.disabled = true;
             btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Envoi...';
 
             try {
                 const base64Content = await fileToBase64(selectedFile);
-                const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${detectedFolder}/${fileName}`;
+                const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${detectedFolder}/${finalFileName}`;
 
                 let sha = null;
                 const checkRes = await fetch(apiUrl, {
@@ -328,7 +312,7 @@
                 }
 
                 const payload = {
-                    message: `Upload ${fileName} to /${detectedFolder}/ via Filebase PWA`,
+                    message: `Upload ${finalFileName} to /${detectedFolder}/ via Filebase PWA`,
                     content: base64Content,
                     branch: BRANCH
                 };
@@ -344,13 +328,14 @@
                 });
 
                 if (uploadRes.ok) {
-                    const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${detectedFolder}/${fileName}`;
+                    const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${detectedFolder}/${finalFileName}`;
                     await navigator.clipboard.writeText(rawUrl);
                     showToast(`Envoyé dans /${detectedFolder}/ ! Lien copié 🚀`, '📁');
                     
                     selectedFile = null;
                     document.getElementById('fileInput').value = '';
                     document.getElementById('targetFileName').value = '';
+                    document.getElementById('fileExtensionBadge').textContent = '.ext';
                     document.getElementById('fileDropLabel').innerHTML = `<span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier`;
                     document.getElementById('targetFolderBadge').textContent = `Dossier auto : /...`;
                     
@@ -367,7 +352,6 @@
             }
         }
 
-        // Récupérer les fichiers de tous les dossiers
         async function fetchAllFiles() {
             const container = document.getElementById('filesContainer');
             if (!activeToken) return;
@@ -452,8 +436,11 @@
                         </div>
                         
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                            <button onclick="copyUrl('${rawUrl}')" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5">
+                            <button onclick="copyUrl('${rawUrl}')" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
                                 Copier lien
+                            </button>
+                            <button onclick="copyAsBase64('${rawUrl}', this)" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
+                                Base64
                             </button>
                             <button onclick="deleteFile('${file._folder}', '${file.name}', '${file.sha}')" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
@@ -467,6 +454,32 @@
         async function copyUrl(url) {
             await navigator.clipboard.writeText(url);
             showToast('Lien direct copié !', '📋');
+        }
+
+        async function copyAsBase64(url, btnElement) {
+            const originalText = btnElement.textContent;
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result;
+                    await navigator.clipboard.writeText(base64data);
+                    showToast('Chaîne Base64 copiée !', '📦');
+                    btnElement.disabled = false;
+                    btnElement.textContent = originalText;
+                };
+            } catch (error) {
+                console.error(error);
+                showToast('Erreur lors de la conversion Base64.', '❌');
+                btnElement.disabled = false;
+                btnElement.textContent = originalText;
+            }
         }
 
         async function deleteFile(folder, fileName, sha) {
@@ -510,12 +523,5 @@
             }, 3000);
         }
     </script>
-<script>
-if ('serviceWorker' in navigator) {
-window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js').catch(err=>console.error(err));
-});
-}
-</script>
 </body>
 </html>
