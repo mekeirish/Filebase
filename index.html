@@ -8,139 +8,200 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <style>
-        body {
-            background-color: #09090b;
-            background-image: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 75%);
-            -webkit-tap-highlight-color: transparent;
-        }
-        audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
-            background-color: #27272a;
-        }
+body {
+    background-color: #09090b;
+    background-image: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 75%);
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+}
+audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
+    background-color: #27272a;
+}
+@media (max-width: 640px) {
+    button, .btn, input, select, a {
+        touch-action: manipulation;
+    }
+    .btn {
+        min-height: 2.5rem;
+    }
+    ::-webkit-scrollbar {
+        height: 4px;
+        width: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: #3f3f46;
+        border-radius: 9999px;
+    }
+}
     </style>
 </head>
 <body class="text-zinc-100 min-h-screen flex flex-col justify-between p-4 sm:p-6 font-sans antialiased">
 
-    <div class="max-w-3xl w-full mx-auto space-y-6">
-        
-        <!-- En-tête -->
-        <header class="flex justify-between items-center border-b border-zinc-800/80 pb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                        Filebase Universal
-                        <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 font-mono">mekeirish/Filebase</span>
-                    </h1>
-                    <p class="text-xs text-zinc-400">Stockage intelligent & routage automatique par dossier</p>
-                </div>
+<div class="max-w-3xl w-full mx-auto space-y-4 sm:space-y-6">
+    
+    <!-- En-tête -->
+    <header class="flex justify-between items-center gap-2 border-b border-zinc-800/80 pb-3 sm:pb-4">
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             </div>
+            <div class="min-w-0">
+                <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-2 flex-wrap">
+                    <span class="truncate">Filebase Universal</span>
+                    <span class="hidden sm:inline text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 font-mono">mekeirish/Filebase</span>
+                </h1>
+                <p class="text-[11px] sm:text-xs text-zinc-400 truncate">Stockage intelligent & routage auto par dossier</p>
+            </div>
+        </div>
 
-            <button id="keyBtn" onclick="toggleAuthPanel()" title="Configurer la clé GitHub" class="btn btn-sm btn-circle bg-zinc-900 border-zinc-700 hover:bg-zinc-800 transition-all relative">
-                <span id="keyStatusDot" class="w-2 h-2 rounded-full bg-amber-500 absolute -top-0.5 -right-0.5 animate-ping"></span>
-                <span id="keyStatusStatic" class="w-2 h-2 rounded-full bg-amber-500 absolute -top-0.5 -right-0.5"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+<button id="keyBtn" onclick="toggleAuthPanel()" title="Configurer la clé GitHub" aria-label="Configurer la clé GitHub" class="btn btn-sm btn-circle bg-zinc-900 border-zinc-700 hover:bg-zinc-800 transition-all relative shrink-0 w-10 h-10">
+    <span id="keyStatusDot" class="w-2 h-2 rounded-full bg-amber-500 absolute -top-0.5 -right-0.5 animate-ping"></span>
+    <span id="keyStatusStatic" class="w-2 h-2 rounded-full bg-amber-500 absolute -top-0.5 -right-0.5"></span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+</button>
+    </header>
+
+    <!-- Panneau Token -->
+    <section id="authPanel" class="bg-zinc-900/90 backdrop-blur border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 transition-all">
+<div>
+    <h2 class="text-sm font-semibold text-amber-400 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Clé d'accès GitHub (Push)
+    </h2>
+    <p class="text-xs text-zinc-400 mt-1 leading-relaxed">Saisis ton Personal Access Token pour activer l'envoi vers <code class="text-zinc-300">mekeirish/Filebase</code>. Conseil : utilise un token « fine-grained » limité à ce seul dépôt (permission Contents : Read and write).</p>
+</div>
+        <div class="flex flex-col sm:flex-row gap-2">
+            <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-11" />
+            <button id="saveTokenBtn" onclick="verifyAndSaveToken()" class="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-11 px-5 font-semibold w-full sm:w-auto">
+                Activer la clé
             </button>
-        </header>
+        </div>
+        <div id="authFeedback" class="text-xs hidden"></div>
+    </section>
 
-        <!-- Panneau Token -->
-        <section id="authPanel" class="bg-zinc-900/90 backdrop-blur border border-amber-500/30 rounded-2xl p-5 shadow-xl space-y-4 transition-all">
-            <div>
-                <h2 class="text-sm font-semibold text-amber-400 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Clé d'accès GitHub (Push)
-                </h2>
-                <p class="text-xs text-zinc-400 mt-1">Saisis ton Personal Access Token pour activer l'envoi vers <code class="text-zinc-300">mekeirish/Filebase</code>.</p>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-10" />
-                <button id="saveTokenBtn" onclick="verifyAndSaveToken()" class="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-10 px-5 font-semibold">
-                    Activer la clé
-                </button>
-            </div>
-            <div id="authFeedback" class="text-xs hidden"></div>
-        </section>
+    <!-- Zone d'upload principal -->
+    <section id="uploadSection" class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 opacity-50 pointer-events-none transition-all">
+        <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs sm:text-sm font-semibold text-zinc-200 uppercase tracking-wider">Nouveau fichier</h2>
+            <span id="targetFolderBadge" class="text-[10px] sm:text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-full truncate max-w-[60%]">Dossier auto : /...</span>
+        </div>
 
-        <!-- Zone d'upload principal -->
-        <section id="uploadSection" class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-5 shadow-lg space-y-4 opacity-50 pointer-events-none transition-all">
-            <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Nouveau fichier</h2>
-                <span id="targetFolderBadge" class="text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">Dossier auto : /...</span>
-            </div>
-
-            <div class="space-y-3">
-                <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-zinc-700 hover:border-emerald-500/60 rounded-xl cursor-pointer bg-zinc-950/60 transition-colors group">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-                        <svg class="w-7 h-7 mb-2 text-zinc-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <p id="fileDropLabel" class="text-xs text-zinc-400"><span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier</p>
-                    </div>
-                    <input id="fileInput" type="file" class="hidden" onchange="handleFileSelect(event)" />
-                </label>
-
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <div class="relative flex-1 flex items-center bg-zinc-950 border border-zinc-800 rounded-lg focus-within:border-emerald-500 overflow-hidden">
-                        <span id="pathPrefix" class="pl-3 pr-1 text-xs text-zinc-500 font-mono select-none">dossier/</span>
-                        <input type="text" id="targetFileName" placeholder="nouveau-nom" class="w-full bg-transparent border-none focus:outline-none text-xs font-mono py-3 px-1 text-zinc-100" />
-                        <span id="fileExtensionBadge" class="pr-3 pl-1 text-xs text-emerald-400 font-mono select-none bg-zinc-900/80 py-3 border-l border-zinc-800">.ext</span>
-                    </div>
-                    <button id="uploadBtn" onclick="uploadFile()" class="btn bg-emerald-600 hover:bg-emerald-500 text-white border-none h-11 px-6 font-semibold shadow-md shadow-emerald-950/50">
-                        Envoyer
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Bibliothèque multi-dossiers -->
-        <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-5 shadow-lg space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-                    <button onclick="setFilter('all')" id="filter-all" class="btn btn-xs bg-emerald-600 text-white border-none font-mono">Tous</button>
-                    <button onclick="setFilter('audio')" id="filter-audio" class="btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono">Audio</button>
-                    <button onclick="setFilter('video')" id="filter-video" class="btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono">Vidéo</button>
-                    <button onclick="setFilter('images')" id="filter-images" class="btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono">Images</button>
-                    <button onclick="setFilter('docs')" id="filter-docs" class="btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono">Docs</button>
-                </div>
-                <button onclick="fetchAllFiles()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 self-end sm:self-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                    Actualiser
-                </button>
-            </div>
-
-            <div id="filesContainer" class="space-y-2.5">
-                <div class="text-center py-8 text-xs text-zinc-500">
-                    Connecte ta clé pour parcourir tes fichiers.
-                </div>
-            </div>
-        </section>
-
+        <div class="space-y-3">
+<label id="dropZone" class="flex flex-col items-center justify-center w-full h-32 sm:h-28 border-2 border-dashed border-zinc-700 hover:border-emerald-500/60 rounded-xl cursor-pointer bg-zinc-950/60 transition-colors group active:border-emerald-500">
+    <div class="flex flex-col items-center justify-center pt-4 pb-5 px-4 text-center">
+        <svg class="w-8 h-8 mb-2 text-zinc-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        <p id="fileDropLabel" class="text-xs text-zinc-400 leading-snug"><span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier (Audio, Vidéo, Image, Doc)</p>
     </div>
+    <input id="fileInput" type="file" multiple class="hidden" onchange="handleFileSelect(event)" />
+</label>
+
+            <div class="flex flex-col gap-2">
+                <div class="relative w-full">
+                    <span id="pathPrefix" class="absolute inset-y-0 left-3 flex items-center text-xs text-zinc-500 font-mono">dossier/</span>
+                    <input type="text" id="targetFileName" placeholder="nom-du-fichier.ext" class="input input-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full pl-22 font-mono text-xs h-11" />
+                </div>
+                <button id="uploadBtn" onclick="uploadFile()" class="btn bg-emerald-600 hover:bg-emerald-500 text-white border-none h-11 w-full px-6 font-semibold shadow-md shadow-emerald-950/50">
+                    Envoyer
+                </button>
+            </div>
+<div id="uploadProgress" class="hidden space-y-1">
+    <div class="flex justify-between gap-2 text-[11px] font-mono text-zinc-400">
+        <span id="uploadProgressLabel" class="truncate">Envoi...</span>
+        <span id="uploadProgressPct" class="shrink-0">0%</span>
+    </div>
+    <progress id="uploadProgressBar" class="progress progress-success w-full h-1.5" value="0" max="100"></progress>
+</div>
+        </div>
+    </section>
+
+    <!-- Bibliothèque multi-dossiers -->
+    <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
+        <div class="flex flex-col gap-3">
+<div id="filterBar" class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <button onclick="setFilter('all')" id="filter-all" class="btn btn-xs bg-emerald-600 text-white border-none font-mono shrink-0">Tous</button>
+</div>
+            <button onclick="fetchAllFiles()" class="btn btn-sm btn-ghost text-zinc-400 hover:text-white gap-1 self-stretch sm:self-end justify-center h-9">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                Actualiser
+            </button>
+        </div>
+<div class="flex flex-col gap-2">
+    <input type="search" id="searchInput" oninput="setSearch(this.value)" placeholder="Rechercher un fichier..." aria-label="Rechercher un fichier" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-10" />
+    <select id="sortSelect" onchange="setSort(this.value)" aria-label="Trier les fichiers" class="select select-bordered select-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 font-mono text-xs h-10 w-full">
+        <option value="name-asc">Nom A → Z</option>
+        <option value="name-desc">Nom Z → A</option>
+        <option value="size-desc">Taille ↓</option>
+        <option value="size-asc">Taille ↑</option>
+    </select>
+</div>
+
+        <div id="filesContainer" class="space-y-2.5">
+            <div class="text-center py-8 text-xs text-zinc-500">
+                Connecte ta clé pour parcourir tes fichiers.
+            </div>
+        </div>
+    </section>
+
+</div>
 
     <!-- Signature -->
-    <footer class="max-w-3xl w-full mx-auto pt-8 pb-2 text-center">
-        <p class="text-[11px] text-zinc-600 font-mono">Made by Brahim Laiche 2026 Paris</p>
-    </footer>
+<footer class="max-w-3xl w-full mx-auto pt-6 sm:pt-8 pb-2 text-center px-4">
+    <p class="text-[10px] sm:text-[11px] text-zinc-600 font-mono">Made by Brahim Laiche 2026 Paris</p>
+</footer>
 
     <!-- Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-4 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
-        <span id="toastIcon">✅</span>
-        <span id="toastMsg">Action effectuée</span>
-    </div>
+<div id="toast" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-5 sm:right-5 bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-4 py-3 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 max-w-md">
+    <span id="toastIcon" class="shrink-0">✅</span>
+    <span id="toastMsg" class="min-w-0 break-words">Action effectuée</span>
+</div>
 
     <script>
-        const REPO_OWNER = 'mekeirish';
-        const REPO_NAME = 'Filebase';
-        const BRANCH = 'main';
-        const STORAGE_KEY = 'filebase_gh_token_v2';
+const REPO_OWNER = 'mekeirish';
+const REPO_NAME = 'Filebase';
+const BRANCH = 'main';
+const STORAGE_KEY = 'filebase_gh_token_v2';
 
-        let activeToken = localStorage.getItem(STORAGE_KEY) || '';
-        let selectedFile = null;
-        let detectedFolder = 'docs';
-        let fileExtension = '';
-        let currentFilter = 'all';
-        let allFilesCache = [];
+// Limites d'envoi : GitHub refuse les fichiers > 100 Mo, on prévient dès 50 Mo
+const WARN_FILE_MB = 50;
+const MAX_FILE_MB = 100;
 
-        const FOLDERS = ['audio', 'video', 'images', 'docs'];
+const DROP_LABEL_HTML = `<span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier (Audio, Vidéo, Image, Doc)`;
+
+let activeToken = localStorage.getItem(STORAGE_KEY) || '';
+let selectedFiles = [];
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'name-asc';
+let allFilesCache = [];
+let isUploading = false;
+
+// Dossiers réellement présents (remplis dynamiquement, uniquement ceux qui contiennent des fichiers)
+let FOLDERS = [];
+
+// Ordre d'affichage des dossiers connus, les autres suivent par ordre alphabétique
+const FOLDER_ORDER = ['audio', 'video', 'images', 'docs'];
+
+// Libellés des filtres (les autres dossiers prennent leur nom avec une majuscule)
+const FOLDER_LABELS = { audio: 'Audio', video: 'Vidéo', images: 'Images', docs: 'Docs' };
+
+// Extensions connues par dossier. Toute autre extension crée son propre dossier (ex: .map -> maps)
+const EXT_GROUPS = {
+    audio: ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'],
+    video: ['mp4', 'webm', 'mov', 'avi', 'mkv'],
+    images: ['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'ico'],
+    docs: ['pdf', 'doc', 'docx', 'txt', 'md', 'rtf', 'odt', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'json', 'xml']
+};
+
+// Dossiers imposés pour les extensions dont le pluriel naïf serait moche (py -> pys, exe -> exes...)
+// Note : .ts est rangé ici dans "scripts" (le navigateur le prend pour de la vidéo video/mp2t)
+const EXT_FOLDER_ALIASES = {
+    py: 'scripts', js: 'scripts', ts: 'scripts', sh: 'scripts', php: 'scripts',
+    html: 'pages', htm: 'pages', css: 'styles',
+    exe: 'executables',
+    zip: 'archives', rar: 'archives', '7z': 'archives', gz: 'archives', tar: 'archives',
+    yml: 'configs', yaml: 'configs', ini: 'configs', toml: 'configs',
+    ttf: 'fonts', otf: 'fonts', woff: 'fonts', woff2: 'fonts'
+};
 
         window.addEventListener('DOMContentLoaded', async () => {
             if (activeToken) {
@@ -150,6 +211,45 @@
                 setAuthState(false);
             }
         });
+// Un seul écouteur pour tous les boutons de la liste (aucune donnée de fichier dans des onclick)
+document.getElementById('filesContainer').addEventListener('click', event => {
+    const btn = event.target.closest('[data-action]');
+    if (!btn) return;
+
+    const { action, url, folder, name, sha } = btn.dataset;
+    if (action === 'copy') copyUrl(url);
+    else if (action === 'base64') copyAsBase64(url, btn);
+    else if (action === 'delete') deleteFile(folder, name, sha);
+});
+(() => {
+    const dropZone = document.getElementById('dropZone');
+    const highlight = on => {
+        dropZone.style.borderColor = on ? '#10b981' : '';
+        dropZone.style.backgroundColor = on ? 'rgba(16, 185, 129, 0.08)' : '';
+    };
+
+    ['dragenter', 'dragover'].forEach(type => {
+        dropZone.addEventListener(type, event => {
+            event.preventDefault();
+            highlight(true);
+        });
+    });
+
+    dropZone.addEventListener('dragleave', event => {
+        if (!dropZone.contains(event.relatedTarget)) highlight(false);
+    });
+
+    dropZone.addEventListener('drop', event => {
+        event.preventDefault();
+        highlight(false);
+        if (event.dataTransfer.files.length > 0) setSelectedFiles(event.dataTransfer.files);
+    });
+
+    // Empêche le navigateur d'ouvrir un fichier lâché en dehors de la zone
+    ['dragover', 'drop'].forEach(type => {
+        window.addEventListener(type, event => event.preventDefault());
+    });
+})();
 
         function toggleAuthPanel() {
             document.getElementById('authPanel').classList.toggle('hidden');
@@ -237,44 +337,102 @@
         }
 
         function resolveFolder(file) {
-            const type = file.type;
-            const name = file.name.toLowerCase();
+const ext = getExtension(file.name);
 
-            if (type.startsWith('audio/') || name.match(/\.(mp3|wav|ogg|flac|aac|m4a)$/)) return 'audio';
-            if (type.startsWith('video/') || name.match(/\.(mp4|webm|mov|avi|mkv)$/)) return 'video';
-            if (type.startsWith('image/') || name.match(/\.(png|jpg|jpeg|webp|svg|gif|ico)$/)) return 'images';
-            return 'docs';
+// 1. L'extension est prioritaire (le type MIME n'est qu'un secours)
+for (const folder in EXT_GROUPS) {
+    if (EXT_GROUPS[folder].includes(ext)) return folder;
+}
+if (Object.hasOwn(EXT_FOLDER_ALIASES, ext)) return EXT_FOLDER_ALIASES[ext];
+
+// 2. Secours : type MIME pour les extensions inconnues
+const type = file.type;
+if (type.startsWith('audio/')) return 'audio';
+if (type.startsWith('video/')) return 'video';
+if (type.startsWith('image/')) return 'images';
+
+// 3. Extension inconnue : dossier créé automatiquement (pluriel de l'extension)
+if (!ext) return 'docs';
+return ext.endsWith('s') ? ext : ext + 's';
         }
+function getExtension(name) {
+    const dotIndex = name.lastIndexOf('.');
+    return dotIndex > 0 ? name.slice(dotIndex + 1).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+}
+function cleanFileName(name) {
+    return name
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9.\-_]/g, '');
+}
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+function encodePath(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+}
+function formatSize(bytes) {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+    return `${(bytes / 1024).toFixed(1)} Ko`;
+}
 
-        // Gestion de la sélection du fichier et séparation propre nom/extension
         function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            selectedFile = file;
-
-            detectedFolder = resolveFolder(file);
-            document.getElementById('targetFolderBadge').textContent = `Dossier auto : /${detectedFolder}/`;
-            document.getElementById('pathPrefix').textContent = `${detectedFolder}/`;
-
-            document.getElementById('fileDropLabel').innerHTML = `<span class="text-emerald-400 font-semibold">${file.name}</span> <span class="text-zinc-500">(${(file.size / 1024).toFixed(1)} Ko)</span>`;
+setSelectedFiles(event.target.files);
             
-            // Extraction sécurisée de l'extension d'origine
-            const lastDotIndex = file.name.lastIndexOf('.');
-            fileExtension = lastDotIndex !== -1 ? file.name.substring(lastDotIndex).toLowerCase() : '';
-            const rawBaseName = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
-
-            // Affichage de l'extension dans le badge à droite
-            document.getElementById('fileExtensionBadge').textContent = fileExtension;
-
-            // Nettoyage et injection du nom de base dans l'input
-            const cleanBaseName = rawBaseName
-                .toLowerCase()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9\-_]/g, '');
             
-            document.getElementById('targetFileName').value = cleanBaseName;
         }
+function setSelectedFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+
+    selectedFiles = files.map(file => ({
+        file,
+        folder: resolveFolder(file),
+        name: cleanFileName(file.name)
+    }));
+    updateSelectionUI();
+}
+function updateSelectionUI() {
+    const badge = document.getElementById('targetFolderBadge');
+    const prefix = document.getElementById('pathPrefix');
+    const label = document.getElementById('fileDropLabel');
+    const nameInput = document.getElementById('targetFileName');
+
+    if (selectedFiles.length === 0) {
+        badge.textContent = 'Dossier auto : /...';
+        prefix.textContent = 'dossier/';
+        label.innerHTML = DROP_LABEL_HTML;
+        nameInput.value = '';
+        nameInput.disabled = false;
+        nameInput.placeholder = 'nom-du-fichier.ext';
+    } else if (selectedFiles.length === 1) {
+        const item = selectedFiles[0];
+        badge.textContent = `Dossier auto : /${item.folder}/`;
+        prefix.textContent = `${item.folder}/`;
+        label.innerHTML = `<span class="text-emerald-400 font-semibold">${escapeHtml(item.file.name)}</span> <span class="text-zinc-500">(${formatSize(item.file.size)})</span>`;
+        nameInput.value = item.name;
+        nameInput.disabled = false;
+        nameInput.placeholder = 'nom-du-fichier.ext';
+    } else {
+        const folders = [...new Set(selectedFiles.map(item => item.folder))];
+        const totalSize = selectedFiles.reduce((sum, item) => sum + item.file.size, 0);
+        badge.textContent = `Dossiers auto : ${folders.map(f => `/${f}/`).join(' ')}`;
+        prefix.textContent = 'auto/';
+        label.innerHTML = `<span class="text-emerald-400 font-semibold">${selectedFiles.length} fichiers</span> <span class="text-zinc-500">(${formatSize(totalSize)})</span>`;
+        nameInput.value = '';
+        nameInput.disabled = true;
+        nameInput.placeholder = 'noms nettoyés automatiquement';
+    }
+
+    // Les noms de dossiers sont maintenant de longueur variable : on adapte le retrait du champ
+    nameInput.style.paddingLeft = `${prefix.offsetWidth + 20}px`;
+}
 
         const fileToBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -282,75 +440,159 @@
             reader.onload = () => resolve(reader.result.split(',')[1]);
             reader.onerror = err => reject(err);
         });
+// Envoi PUT via XMLHttpRequest pour disposer de la progression d'upload (fetch ne la fournit pas)
+function putFile(apiUrl, payload, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', apiUrl);
+        xhr.setRequestHeader('Authorization', `Bearer ${activeToken}`);
+        xhr.setRequestHeader('Content-Type', 'application/json');
 
-        async function uploadFile() {
-            const baseNameInput = document.getElementById('targetFileName').value.trim();
-            const btn = document.getElementById('uploadBtn');
+        xhr.upload.onprogress = event => {
+            if (event.lengthComputable) onProgress(event.loaded / event.total);
+        };
+        xhr.onload = () => {
+            let data = {};
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (e) {}
+            resolve({ ok: xhr.status >= 200 && xhr.status < 300, data });
+        };
+        xhr.onerror = () => reject(new Error('Erreur réseau'));
 
-            if (!selectedFile || !baseNameInput) {
-                showToast('Sélectionne un fichier et saisis un nom valide.', '⚠️');
-                return;
+        xhr.send(JSON.stringify(payload));
+    });
+}
+// fraction entre 0 et 1, ou null pour masquer la barre
+function setUploadProgress(fraction, label) {
+    const wrap = document.getElementById('uploadProgress');
+    if (fraction === null) {
+        wrap.classList.add('hidden');
+        return;
+    }
+
+    const pct = Math.round(fraction * 100);
+    wrap.classList.remove('hidden');
+    document.getElementById('uploadProgressBar').value = pct;
+    document.getElementById('uploadProgressPct').textContent = `${pct}%`;
+    document.getElementById('uploadProgressLabel').textContent = label;
+}
+
+async function uploadFile() {
+    const fileName = document.getElementById('targetFileName').value.trim().replace(/[\/\\]/g, '-');
+    const btn = document.getElementById('uploadBtn');
+
+    if (isUploading) return;
+    if (selectedFiles.length === 0 || (selectedFiles.length === 1 && !fileName)) {
+        showToast('Sélectionne un fichier et vérifie son nom.', '⚠️');
+        return;
+    }
+
+    // En mode fichier unique, le nom saisi est prioritaire
+    if (selectedFiles.length === 1) selectedFiles[0].name = fileName;
+    const queue = selectedFiles.slice();
+    const doneItems = new Set();
+
+    const tooBig = queue.find(item => item.file.size > MAX_FILE_MB * 1024 * 1024);
+    if (tooBig) {
+        showToast(`"${tooBig.file.name}" dépasse ${MAX_FILE_MB} Mo (limite GitHub).`, '⚠️');
+        return;
+    }
+
+    const heavy = queue.filter(item => item.file.size > WARN_FILE_MB * 1024 * 1024);
+    if (heavy.length > 0 && !confirm(`Fichier(s) de plus de ${WARN_FILE_MB} Mo : ${heavy.map(item => item.file.name).join(', ')}.\nL'envoi risque d'échouer ou d'être très long. Continuer ?`)) return;
+
+    isUploading = true;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Envoi...';
+
+    try {
+        const total = queue.length;
+        const uploadedUrls = [];
+        let failed = 0;
+        let lastError = '';
+
+        for (let i = 0; i < total; i++) {
+            const item = queue[i];
+            const path = `${item.folder}/${item.name}`;
+            const label = total > 1 ? `(${i + 1}/${total}) ${item.name}` : item.name;
+            setUploadProgress(i / total, label);
+
+            if (!item.name) {
+                failed++;
+                lastError = 'nom de fichier vide';
+                continue;
             }
 
-            // Reconstruction automatique et infaillible du nom complet avec son extension d'origine
-            const finalFileName = baseNameInput + fileExtension;
+            const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(path)}`;
 
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Envoi...';
+            // Vérifie si le fichier existe déjà et demande confirmation avant de l'écraser
+            let sha = null;
+            const checkRes = await fetch(`${apiUrl}?ref=${BRANCH}&t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${activeToken}` }
+            });
+            if (checkRes.ok) {
+                const existing = await checkRes.json();
+                if (!confirm(`"${path}" existe déjà. Le remplacer ?`)) continue;
+                sha = existing.sha;
+            }
 
-            try {
-                const base64Content = await fileToBase64(selectedFile);
-                const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${detectedFolder}/${finalFileName}`;
+            const payload = {
+                message: `Upload ${item.name} to /${item.folder}/ via Filebase PWA`,
+                content: await fileToBase64(item.file),
+                branch: BRANCH
+            };
+            if (sha) payload.sha = sha;
 
-                let sha = null;
-                const checkRes = await fetch(apiUrl, {
-                    headers: { 'Authorization': `Bearer ${activeToken}` }
-                });
-                if (checkRes.ok) {
-                    const existing = await checkRes.json();
-                    sha = existing.sha;
-                }
+            const result = await putFile(apiUrl, payload, fraction => setUploadProgress((i + fraction) / total, label));
 
-                const payload = {
-                    message: `Upload ${finalFileName} to /${detectedFolder}/ via Filebase PWA`,
-                    content: base64Content,
-                    branch: BRANCH
-                };
-                if (sha) payload.sha = sha;
-
-                const uploadRes = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${activeToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (uploadRes.ok) {
-                    const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${detectedFolder}/${finalFileName}`;
-                    await navigator.clipboard.writeText(rawUrl);
-                    showToast(`Envoyé dans /${detectedFolder}/ ! Lien copié 🚀`, '📁');
-                    
-                    selectedFile = null;
-                    document.getElementById('fileInput').value = '';
-                    document.getElementById('targetFileName').value = '';
-                    document.getElementById('fileExtensionBadge').textContent = '.ext';
-                    document.getElementById('fileDropLabel').innerHTML = `<span class="font-semibold text-zinc-200">Clique ou glisse</span> n'importe quel fichier`;
-                    document.getElementById('targetFolderBadge').textContent = `Dossier auto : /...`;
-                    
-                    setTimeout(fetchAllFiles, 800);
-                } else {
-                    const err = await uploadRes.json();
-                    showToast(`Erreur : ${err.message}`, '❌');
-                }
-            } catch (error) {
-                showToast('Erreur lors de l\'envoi.', '❌');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Envoyer';
+            if (result.ok) {
+                // Mise à jour locale du cache (pas besoin de recharger toute la liste)
+                const saved = result.data.content;
+                allFilesCache = allFilesCache.filter(f => f.path !== saved.path);
+                allFilesCache.push({ name: saved.name, path: saved.path, sha: saved.sha, size: saved.size, type: 'file', _folder: item.folder });
+                uploadedUrls.push(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(saved.path)}`);
+                doneItems.add(item);
+            } else {
+                failed++;
+                lastError = result.data.message || 'envoi impossible';
             }
         }
+
+        setUploadProgress(1, 'Terminé');
+
+        if (failed > 0) {
+            showToast(doneItems.size > 0 ? `${doneItems.size} envoyé(s), ${failed} en échec : ${lastError}` : `Erreur : ${lastError}`, '❌');
+        } else if (doneItems.size > 0) {
+            // Sur iOS/Safari, la copie peut être refusée après un long envoi : message de secours
+            let copied = false;
+            try {
+                await navigator.clipboard.writeText(uploadedUrls.join('\n'));
+                copied = true;
+            } catch (e) {
+                copied = false;
+            }
+
+            const first = [...doneItems][0];
+            const summary = doneItems.size === 1 ? `Envoyé dans /${first.folder}/ !` : `${doneItems.size} fichiers envoyés !`;
+            showToast(copied ? `${summary} Lien copié 🚀` : `${summary} Copie du lien impossible, utilise « Copier lien ».`, '📁');
+        }
+    } catch (error) {
+        showToast('Erreur lors de l\'envoi.', '❌');
+    } finally {
+        isUploading = false;
+        btn.disabled = false;
+        btn.textContent = 'Envoyer';
+
+        if (doneItems.size > 0) {
+            selectedFiles = selectedFiles.filter(item => !doneItems.has(item));
+            document.getElementById('fileInput').value = '';
+            updateSelectionUI();
+            rebuildFolders();
+        }
+        setTimeout(() => setUploadProgress(null), 600);
+    }
+}
 
         async function fetchAllFiles() {
             const container = document.getElementById('filesContainer');
@@ -359,95 +601,139 @@
             container.innerHTML = `<div class="text-center py-6"><span class="loading loading-dots loading-sm text-emerald-500"></span></div>`;
             allFilesCache = [];
 
-            try {
-                for (const folder of FOLDERS) {
-                    const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${folder}?ref=${BRANCH}&t=${Date.now()}`, {
-                        headers: { 'Authorization': `Bearer ${activeToken}` }
-                    });
-                    if (res.ok) {
-                        const files = await res.json();
-                        if (Array.isArray(files)) {
-                            files.forEach(f => {
-                                if (f.type === 'file') {
-                                    f._folder = folder;
-                                    allFilesCache.push(f);
-                                }
-                            });
-                        }
-                    }
-                }
-                renderFiles();
-            } catch (e) {
-                container.innerHTML = `<div class="text-center py-6 text-xs text-rose-400">Erreur lors de la lecture des dossiers.</div>`;
-            }
+try {
+    // Une seule requête : l'arbre complet du dépôt (au lieu d'une requête par dossier)
+    const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/${BRANCH}?recursive=1&t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+    });
+    if (!res.ok) throw new Error('Lecture du dépôt impossible');
+    const data = await res.json();
+
+    (data.tree || []).forEach(item => {
+        if (item.type !== 'blob') return;
+        const parts = item.path.split('/');
+        if (parts.length !== 2 || parts[0].startsWith('.')) return;
+        allFilesCache.push({ name: parts[1], path: item.path, sha: item.sha, size: item.size, type: 'file', _folder: parts[0] });
+    });
+
+    if (data.truncated) showToast('Dépôt très volumineux : liste incomplète.', '⚠️');
+
+    rebuildFolders();
+} catch (e) {
+    container.innerHTML = `<div class="text-center py-6 text-xs text-rose-400">Erreur lors de la lecture des dossiers.</div>`;
+}
         }
 
         function setFilter(filter) {
             currentFilter = filter;
-            FOLDERS.forEach(f => {
-                const btn = document.getElementById(`filter-${f}`);
-                if (btn) {
-                    btn.className = f === filter ? 'btn btn-xs bg-emerald-600 text-white border-none font-mono' : 'btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono';
-                }
-            });
-            const allBtn = document.getElementById('filter-all');
-            allBtn.className = filter === 'all' ? 'btn btn-xs bg-emerald-600 text-white border-none font-mono' : 'btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono';
-            renderFiles();
+renderFilters();
+renderFiles();
         }
+function renderFilters() {
+    const bar = document.getElementById('filterBar');
+    const activeClass = 'btn btn-xs bg-emerald-600 text-white border-none font-mono shrink-0';
+    const idleClass = 'btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono shrink-0';
+
+    const makeButton = (key, label) =>
+        `<button onclick="setFilter(this.dataset.filter)" data-filter="${escapeHtml(key)}" id="filter-${escapeHtml(key)}" class="${key === currentFilter ? activeClass : idleClass}">${label}</button>`;
+
+    const folderButtons = FOLDERS.map(folder => {
+        const label = FOLDER_LABELS[folder] || (folder.charAt(0).toUpperCase() + folder.slice(1));
+        const count = allFilesCache.filter(f => f._folder === folder).length;
+        return makeButton(folder, `${escapeHtml(label)} (${count})`);
+    });
+
+    bar.innerHTML = makeButton('all', `Tous (${allFilesCache.length})`) + folderButtons.join('');
+}
+function setSearch(value) {
+    currentSearch = value.trim().toLowerCase();
+    renderFiles();
+}
+function setSort(value) {
+    currentSort = value;
+    renderFiles();
+}
+// Recalcule les dossiers présents à partir du cache, puis redessine filtres et liste
+function rebuildFolders() {
+    const rank = name => {
+        const i = FOLDER_ORDER.indexOf(name);
+        return i === -1 ? 99 : i;
+    };
+    FOLDERS = [...new Set(allFilesCache.map(f => f._folder))]
+        .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+
+    if (currentFilter !== 'all' && !FOLDERS.includes(currentFilter)) currentFilter = 'all';
+
+    renderFilters();
+    renderFiles();
+}
 
         function renderFiles() {
-            const container = document.getElementById('filesContainer');
-            const filtered = currentFilter === 'all' ? allFilesCache : allFilesCache.filter(f => f._folder === currentFilter);
+const container = document.getElementById('filesContainer');
+const sorters = {
+    'name-asc': (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }),
+    'name-desc': (a, b) => b.name.localeCompare(a.name, undefined, { numeric: true }),
+    'size-desc': (a, b) => b.size - a.size,
+    'size-asc': (a, b) => a.size - b.size
+};
+const filtered = allFilesCache
+    .filter(f => currentFilter === 'all' || f._folder === currentFilter)
+    .filter(f => !currentSearch || f.name.toLowerCase().includes(currentSearch))
+    .sort(sorters[currentSort] || sorters['name-asc']);
 
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center py-6 text-xs text-zinc-500">Aucun fichier trouvé dans cette catégorie.</div>`;
-                return;
-            }
+if (filtered.length === 0) {
+    const message = currentSearch ? 'Aucun fichier ne correspond à la recherche.' : 'Aucun fichier trouvé dans cette catégorie.';
+    container.innerHTML = `<div class="text-center py-6 text-xs text-zinc-500">${message}</div>`;
+    return;
+}
 
             container.innerHTML = filtered.map(file => {
-                const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${file._folder}/${file.name}`;
-                const sizeKb = (file.size / 1024).toFixed(1);
-                
-                let previewHtml = '';
-                if (file._folder === 'audio') {
-                    previewHtml = `<audio controls preload="none" src="${rawUrl}" class="h-7 w-40 sm:w-44 rounded"></audio>`;
-                } else if (file._folder === 'images') {
-                    previewHtml = `<img src="${rawUrl}" class="w-10 h-10 object-cover rounded border border-zinc-800" />`;
-                } else if (file._folder === 'video') {
-                    previewHtml = `<video src="${rawUrl}" class="w-16 h-10 object-cover rounded border border-zinc-800" preload="none"></video>`;
-                } else {
-                    previewHtml = `<div class="w-10 h-10 rounded bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400 uppercase">${file.name.split('.').pop()}</div>`;
-                }
+const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(`${file._folder}/${file.name}`)}`;
+const sizeLabel = formatSize(file.size);
+const safeName = escapeHtml(file.name);
+const safeFolder = escapeHtml(file._folder);
+const safeUrl = escapeHtml(rawUrl);
 
-                return `
-                    <div class="bg-zinc-950/90 border border-zinc-800/90 hover:border-zinc-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
-                        <div class="flex items-center gap-3 min-w-0 flex-1">
-                            ${previewHtml}
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-mono font-semibold text-zinc-200 truncate">${file.name}</span>
-                                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">/${file._folder}/</span>
-                                </div>
-                                <div class="flex items-center gap-2 mt-0.5">
-                                    <span class="text-[10px] text-zinc-500 font-mono">${sizeKb} Ko</span>
-                                    <span class="text-[10px] text-zinc-600 font-mono truncate">${rawUrl}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                            <button onclick="copyUrl('${rawUrl}')" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
-                                Copier lien
-                            </button>
-                            <button onclick="copyAsBase64('${rawUrl}', this)" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
-                                Base64
-                            </button>
-                            <button onclick="deleteFile('${file._folder}', '${file.name}', '${file.sha}')" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                `;
+let previewHtml = '';
+if (file._folder === 'audio') {
+    previewHtml = `<audio controls preload="none" src="${safeUrl}" class="h-9 w-full max-w-[9rem] rounded shrink-0"></audio>`;
+} else if (file._folder === 'images') {
+    previewHtml = `<img src="${safeUrl}" alt="${safeName}" class="w-11 h-11 object-cover rounded-lg border border-zinc-800 shrink-0" loading="lazy" />`;
+} else if (file._folder === 'video') {
+    previewHtml = `<video src="${safeUrl}" class="w-16 h-11 object-cover rounded-lg border border-zinc-800 shrink-0" preload="none"></video>`;
+} else {
+    previewHtml = `<div class="w-11 h-11 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400 uppercase shrink-0">${escapeHtml(file.name.split('.').pop())}</div>`;
+}
+
+return `
+    <div class="bg-zinc-950/90 border border-zinc-800/90 hover:border-zinc-700 rounded-xl p-3 flex flex-col gap-3 transition-colors">
+        <div class="flex items-center gap-3 min-w-0">
+            ${previewHtml}
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono font-semibold text-zinc-200 truncate max-w-full">${safeName}</span>
+                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 shrink-0">/${safeFolder}/</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] text-zinc-500 font-mono shrink-0">${sizeLabel}</span>
+                    <span class="text-[10px] text-zinc-600 font-mono truncate">${safeUrl}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-2 w-full">
+            <button data-action="copy" data-url="${safeUrl}" class="btn btn-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-9 px-2 text-[11px]">
+                Copier lien
+            </button>
+            <button data-action="base64" data-url="${safeUrl}" class="btn btn-sm bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-9 px-2 text-[11px] font-mono">
+                Base64
+            </button>
+            <button data-action="delete" data-folder="${safeFolder}" data-name="${safeName}" data-sha="${escapeHtml(file.sha)}" aria-label="Supprimer ${safeName}" title="Supprimer" class="btn btn-sm btn-ghost text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 h-9 px-2 justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+        </div>
+    </div>
+`;
             }).join('');
         }
 
@@ -456,6 +742,7 @@
             showToast('Lien direct copié !', '📋');
         }
 
+        // Fonction de conversion et copie Base64 avec désactivation temporaire du bouton
         async function copyAsBase64(url, btnElement) {
             const originalText = btnElement.textContent;
             btnElement.disabled = true;
@@ -485,29 +772,30 @@
         async function deleteFile(folder, fileName, sha) {
             if (!confirm(`Supprimer définitivement "${fileName}" de /${folder}/ ?`)) return;
 
-            try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${folder}/${fileName}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${activeToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Delete ${fileName} via Filebase PWA`,
-                        sha: sha,
-                        branch: BRANCH
-                    })
-                });
+try {
+    const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(`${folder}/${fileName}`)}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${activeToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: `Delete ${fileName} via Filebase PWA`,
+            sha: sha,
+            branch: BRANCH
+        })
+    });
 
-                if (res.ok) {
-                    showToast(`${fileName} supprimé.`, '🗑️');
-                    fetchAllFiles();
-                } else {
-                    showToast('Erreur lors de la suppression.', '❌');
-                }
-            } catch (e) {
-                showToast('Erreur réseau.', '❌');
-            }
+    if (res.ok) {
+        showToast(`${fileName} supprimé.`, '🗑️');
+        allFilesCache = allFilesCache.filter(f => !(f._folder === folder && f.name === fileName));
+        rebuildFolders();
+    } else {
+        showToast('Erreur lors de la suppression.', '❌');
+    }
+} catch (e) {
+    showToast('Erreur réseau.', '❌');
+}
         }
 
         let toastTimeout;
