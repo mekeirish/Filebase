@@ -120,10 +120,15 @@ audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
 <div id="filterBar" class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     <button onclick="setFilter('all')" id="filter-all" class="btn btn-xs bg-emerald-600 text-white border-none font-mono shrink-0">Tous</button>
 </div>
-            <button onclick="fetchAllFiles()" class="btn btn-sm btn-ghost text-zinc-400 hover:text-white gap-1 self-stretch sm:self-end justify-center h-9">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                Actualiser
-            </button>
+<div class="flex flex-wrap items-center justify-end gap-1 self-end sm:self-auto">
+    <button id="deleteSelectedBtn" onclick="deleteSelected()" class="btn btn-xs bg-rose-600 hover:bg-rose-500 text-white border-none gap-1 font-mono hidden" disabled>Supprimer (0)</button>
+    <button id="selectBtn" onclick="toggleSelectMode()" aria-pressed="false" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Sélectionner</button>
+    <button id="renameBtn" onclick="handleRenameClick()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Renommer</button>
+    <button onclick="fetchAllFiles()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 self-end sm:self-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        Actualiser
+    </button>
+</div>
         </div>
 <div class="flex flex-col gap-2">
     <input type="search" id="searchInput" oninput="setSearch(this.value)" placeholder="Rechercher un fichier..." aria-label="Rechercher un fichier" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-10" />
@@ -153,6 +158,17 @@ audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
 <div id="toast" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-5 sm:right-5 bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-4 py-3 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 max-w-md">
     <span id="toastIcon" class="shrink-0">✅</span>
     <span id="toastMsg" class="min-w-0 break-words">Action effectuée</span>
+</div>
+<div id="modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="w-full max-w-sm bg-zinc-900/95 border border-zinc-800/90 rounded-2xl p-5 shadow-2xl space-y-4" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle" class="text-sm font-semibold text-zinc-200 uppercase tracking-wider"></h3>
+        <p id="modalMessage" class="text-xs text-zinc-400 whitespace-pre-line break-words"></p>
+        <input type="text" id="modalInput" class="input input-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-11 hidden" />
+        <div class="flex justify-end gap-2">
+            <button id="modalCancel" class="btn btn-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-10 px-4">Annuler</button>
+            <button id="modalOk" class="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-10 px-5 font-semibold">OK</button>
+        </div>
+    </div>
 </div>
 
     <script>
@@ -250,6 +266,56 @@ document.getElementById('filesContainer').addEventListener('click', event => {
         window.addEventListener(type, event => event.preventDefault());
     });
 })();
+(() => {
+    const modal = document.getElementById('modal');
+
+    document.getElementById('modalOk').addEventListener('click', () => closeModal(true));
+    document.getElementById('modalCancel').addEventListener('click', () => closeModal(false));
+
+    // Clic sur le fond sombre : annule
+    modal.addEventListener('click', event => {
+        if (event.target === modal) closeModal(false);
+    });
+
+    // Entrée dans le champ : valide
+    document.getElementById('modalInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.isComposing) {
+            event.preventDefault();
+            closeModal(true);
+        }
+    });
+
+    // Échap : annule
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && modalResolve) closeModal(false);
+    });
+})();
+(() => {
+    const container = document.getElementById('filesContainer');
+
+    container.addEventListener('input', event => {
+        if (event.target.dataset && event.target.dataset.renamePath !== undefined) onRenameInput(event.target, false);
+    });
+
+    container.addEventListener('change', event => {
+        if (event.target.dataset && event.target.dataset.renamePath !== undefined) onRenameInput(event.target, true);
+    });
+})();
+// Case à cocher d'un fichier : met à jour la sélection sans redessiner la liste
+document.getElementById('filesContainer').addEventListener('change', event => {
+    const box = event.target;
+    if (!box.dataset || box.dataset.selectPath === undefined) return;
+
+    if (box.checked) selectedPaths.add(box.dataset.selectPath);
+    else selectedPaths.delete(box.dataset.selectPath);
+
+    const row = box.closest('[data-row]');
+    if (row) {
+        row.classList.toggle('border-emerald-500/60', box.checked);
+        row.classList.toggle('border-zinc-800/90', !box.checked);
+    }
+    updateSelectButtons();
+});
 
         function toggleAuthPanel() {
             document.getElementById('authPanel').classList.toggle('hidden');
@@ -366,6 +432,29 @@ function cleanFileName(name) {
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9.\-_]/g, '');
 }
+async function askFileName(file, index, total) {
+    const ext = getExtension(file.name);
+    const defaultName = cleanFileName(file.name);
+    const title = total > 1 ? `Nom du fichier (${index + 1}/${total})` : 'Nom du fichier';
+
+    const result = await openModal({
+        title,
+        message: `Fichier : ${file.name}\nExtension conservée : ${ext ? '.' + ext : '(aucune)'}\nLes espaces sont remplacés par des tirets.`,
+        withInput: true,
+        defaultValue: defaultName,
+        okText: 'Valider'
+    });
+
+    // Annulation : on garde le nom automatique
+    if (!result.ok) return defaultName;
+
+    let base = cleanFileName(result.value.trim());
+    if (ext && base.endsWith('.' + ext)) base = base.slice(0, -(ext.length + 1));
+    base = base.replace(/^[.\-_]+|[.\-_]+$/g, '');
+
+    if (!base) return defaultName;
+    return ext ? `${base}.${ext}` : base;
+}
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
@@ -381,21 +470,289 @@ function formatSize(bytes) {
     if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
     return `${(bytes / 1024).toFixed(1)} Ko`;
 }
+function splitName(name) {
+    const dotIndex = name.lastIndexOf('.');
+    if (dotIndex > 0) return { base: name.slice(0, dotIndex), ext: name.slice(dotIndex) };
+    return { base: name, ext: '' };
+}
+// Nom final d'un fichier d'après ce qui a été saisi (extension conservée, nom nettoyé)
+function getNewName(file) {
+    const raw = pendingRenames[file.path];
+    if (raw === undefined) return file.name;
+
+    const { ext } = splitName(file.name);
+    let cleaned = cleanFileName(raw.trim());
+    if (ext && cleaned.endsWith(ext.toLowerCase())) cleaned = cleaned.slice(0, -ext.length);
+    cleaned = cleaned.replace(/^[.\-_]+|[.\-_]+$/g, '');
+
+    if (!cleaned) return file.name;
+    return cleaned + ext;
+}
+function countRenames() {
+    return allFilesCache.filter(file => getNewName(file) !== file.name).length;
+}
+function updateRenameButton() {
+    const btn = document.getElementById('renameBtn');
+    if (!btn) return;
+
+    const ghostClass = 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1';
+    const updateClass = 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono';
+
+    if (isRenaming) {
+        btn.disabled = true;
+        btn.className = updateClass;
+        btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Update';
+        return;
+    }
+
+    btn.disabled = false;
+    if (!renameMode) {
+        btn.className = ghostClass;
+        btn.textContent = 'Renommer';
+    } else if (countRenames() === 0) {
+        btn.className = ghostClass;
+        btn.textContent = 'Annuler';
+    } else {
+        btn.className = updateClass;
+        btn.textContent = `Update (${countRenames()})`;
+    }
+}
+function handleRenameClick() {
+    if (isRenaming) return;
+
+    if (!renameMode) {
+        renameMode = true;
+        pendingRenames = {};
+        renderFiles();
+        updateRenameButton();
+        return;
+    }
+
+    if (countRenames() === 0) {
+        exitRenameMode();
+        return;
+    }
+
+    applyRenames();
+}
+function exitRenameMode() {
+    renameMode = false;
+    pendingRenames = {};
+    renderFiles();
+    updateRenameButton();
+}
+async function ghRequest(url, method = 'GET', body = null) {
+    const options = {
+        method,
+        cache: 'no-store',
+        headers: { 'Authorization': `Bearer ${activeToken}` }
+    };
+    if (body) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(body);
+    }
+
+    const res = await fetch(url, options);
+    let data = {};
+    try {
+        data = await res.json();
+    } catch (e) {}
+
+    if (!res.ok) throw new Error(data.message || `Erreur ${res.status}`);
+    return data;
+}
+// Renomme sur GitHub en un seul commit (API Git Data : aucun fichier n'est renvoyé)
+async function applyRenames() {
+    const changes = allFilesCache
+        .map(file => ({ file, newName: getNewName(file) }))
+        .filter(c => c.newName !== c.file.name)
+        .map(c => ({ ...c, oldPath: c.file.path, newPath: `${c.file._folder}/${c.newName}` }));
+    if (changes.length === 0) return;
+
+    // Vérifie les conflits de noms avant d'envoyer quoi que ce soit
+    const freedPaths = new Set(changes.map(c => c.oldPath));
+    const takenPaths = new Set(allFilesCache.filter(f => !freedPaths.has(f.path)).map(f => f.path));
+    const seen = new Set();
+    for (const c of changes) {
+        if (takenPaths.has(c.newPath) || seen.has(c.newPath)) {
+            showToast(`"${c.newName}" existe déjà dans /${c.file._folder}/.`, '⚠️');
+            return;
+        }
+        seen.add(c.newPath);
+    }
+
+    isRenaming = true;
+    updateRenameButton();
+
+    try {
+        const base = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+        const ref = await ghRequest(`${base}/git/ref/heads/${BRANCH}`);
+        const headSha = ref.object.sha;
+        const headCommit = await ghRequest(`${base}/git/commits/${headSha}`);
+
+        // Anciens chemins supprimés (sha null), nouveaux chemins pointant vers le même contenu
+        const entries = {};
+        changes.forEach(c => { entries[c.oldPath] = null; });
+        changes.forEach(c => { entries[c.newPath] = c.file.sha; });
+
+        const newTree = await ghRequest(`${base}/git/trees`, 'POST', {
+            base_tree: headCommit.tree.sha,
+            tree: Object.entries(entries).map(([path, sha]) => ({ path, mode: '100644', type: 'blob', sha }))
+        });
+
+        const newCommit = await ghRequest(`${base}/git/commits`, 'POST', {
+            message: `Rename ${changes.length} file(s) via Filebase PWA`,
+            tree: newTree.sha,
+            parents: [headSha]
+        });
+
+        await ghRequest(`${base}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
+
+        changes.forEach(c => {
+            c.file.name = c.newName;
+            c.file.path = c.newPath;
+        });
+
+        showToast(`${changes.length} fichier(s) renommé(s).`, '✏️');
+        renameMode = false;
+        pendingRenames = {};
+        rebuildFolders();
+    } catch (e) {
+        showToast(`Erreur : ${e.message}`, '❌');
+    } finally {
+        isRenaming = false;
+        updateRenameButton();
+    }
+}
+// final = true quand le champ perd le focus : le texte est alors remplacé par le nom nettoyé
+function onRenameInput(input, final) {
+    const path = input.dataset.renamePath;
+    const file = allFilesCache.find(f => f.path === path);
+    if (!file) return;
+
+    const { base } = splitName(file.name);
+    if (input.value === base) delete pendingRenames[path];
+    else pendingRenames[path] = input.value;
+
+    if (final) {
+        input.value = splitName(getNewName(file)).base;
+        if (input.value === base) delete pendingRenames[path];
+        else pendingRenames[path] = input.value;
+    }
+
+    updateRenameButton();
+}
+// Seuls les fichiers encore présents dans le cache comptent (les chemins périmés sont ignorés)
+function getSelectedFiles() {
+    return allFilesCache.filter(file => selectedPaths.has(file.path));
+}
+function updateSelectButtons() {
+    const selectBtn = document.getElementById('selectBtn');
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    if (!selectBtn || !deleteBtn) return;
+
+    const ghostClass = 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1';
+    const activeClass = 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono';
+    const dangerClass = 'btn btn-xs bg-rose-600 hover:bg-rose-500 text-white border-none gap-1 font-mono';
+
+    selectBtn.className = selectMode ? activeClass : ghostClass;
+    selectBtn.setAttribute('aria-pressed', String(selectMode));
+
+    deleteBtn.className = dangerClass;
+    deleteBtn.classList.toggle('hidden', !selectMode);
+
+    const count = getSelectedFiles().length;
+    if (isDeletingMany) {
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Supprimer';
+    } else {
+        deleteBtn.disabled = count === 0;
+        deleteBtn.textContent = `Supprimer (${count})`;
+    }
+}
+function toggleSelectMode() {
+    if (isDeletingMany) return;
+
+    selectMode = !selectMode;
+    selectedPaths = new Set();
+    renderFiles();
+    updateSelectButtons();
+}
+// Supprime toute la sélection en un seul commit (API Git Data)
+async function deleteSelected() {
+    if (isDeletingMany) return;
+
+    const files = getSelectedFiles();
+    if (files.length === 0) return;
+
+    const names = files.slice(0, 5).map(f => `/${f._folder}/${f.name}`);
+    const more = files.length > 5 ? `\n+ ${files.length - 5} autre(s)` : '';
+    const confirmed = await uiConfirm({
+        title: 'Supprimer la sélection',
+        message: `Supprimer définitivement ${files.length} fichier(s) ?\n${names.join('\n')}${more}`,
+        okText: 'Supprimer',
+        danger: true
+    });
+    if (!confirmed) return;
+
+    isDeletingMany = true;
+    updateSelectButtons();
+
+    try {
+        const base = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+        const ref = await ghRequest(`${base}/git/ref/heads/${BRANCH}`);
+        const headSha = ref.object.sha;
+        const headCommit = await ghRequest(`${base}/git/commits/${headSha}`);
+
+        const newTree = await ghRequest(`${base}/git/trees`, 'POST', {
+            base_tree: headCommit.tree.sha,
+            tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', sha: null }))
+        });
+
+        const newCommit = await ghRequest(`${base}/git/commits`, 'POST', {
+            message: `Delete ${files.length} file(s) via Filebase PWA`,
+            tree: newTree.sha,
+            parents: [headSha]
+        });
+
+        await ghRequest(`${base}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
+
+        const removed = new Set(files.map(f => f.path));
+        allFilesCache = allFilesCache.filter(f => !removed.has(f.path));
+        selectedPaths = new Set();
+
+        showToast(`${files.length} fichier(s) supprimé(s).`, '🗑️');
+        rebuildFolders();
+    } catch (e) {
+        showToast(`Erreur : ${e.message}`, '❌');
+    } finally {
+        isDeletingMany = false;
+        updateSelectButtons();
+    }
+}
 
         function handleFileSelect(event) {
 setSelectedFiles(event.target.files);
             
             
         }
-function setSelectedFiles(fileList) {
+async function setSelectedFiles(fileList) {
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
-    selectedFiles = files.map(file => ({
-        file,
-        folder: resolveFolder(file),
-        name: cleanFileName(file.name)
-    }));
+    const items = [];
+    for (let i = 0; i < files.length; i++) {
+        items.push({
+            file: files[i],
+            folder: resolveFolder(files[i]),
+            // Un seul fichier : on demande le nom. Plusieurs fichiers : nom automatique, sans question
+            name: files.length === 1 ? await askFileName(files[i], i, files.length) : cleanFileName(files[i].name)
+        });
+    }
+
+    selectedFiles = items;
     updateSelectionUI();
 }
 function updateSelectionUI() {
@@ -488,110 +845,123 @@ async function uploadFile() {
         return;
     }
 
-    // En mode fichier unique, le nom saisi est prioritaire
-    if (selectedFiles.length === 1) selectedFiles[0].name = fileName;
-    const queue = selectedFiles.slice();
-    const doneItems = new Set();
+// En mode fichier unique, le nom saisi est prioritaire
+if (selectedFiles.length === 1) selectedFiles[0].name = fileName;
+const queue = selectedFiles.slice();
+const doneItems = new Set();
 
-    const tooBig = queue.find(item => item.file.size > MAX_FILE_MB * 1024 * 1024);
-    if (tooBig) {
-        showToast(`"${tooBig.file.name}" dépasse ${MAX_FILE_MB} Mo (limite GitHub).`, '⚠️');
-        return;
-    }
+const tooBig = queue.find(item => item.file.size > MAX_FILE_MB * 1024 * 1024);
+if (tooBig) {
+    showToast(`"${tooBig.file.name}" dépasse ${MAX_FILE_MB} Mo (limite GitHub).`, '⚠️');
+    return;
+}
 
-    const heavy = queue.filter(item => item.file.size > WARN_FILE_MB * 1024 * 1024);
-    if (heavy.length > 0 && !confirm(`Fichier(s) de plus de ${WARN_FILE_MB} Mo : ${heavy.map(item => item.file.name).join(', ')}.\nL'envoi risque d'échouer ou d'être très long. Continuer ?`)) return;
+const heavy = queue.filter(item => item.file.size > WARN_FILE_MB * 1024 * 1024);
+if (heavy.length > 0) {
+    const proceed = await uiConfirm({
+        title: 'Fichier volumineux',
+        message: `Plus de ${WARN_FILE_MB} Mo : ${heavy.map(item => item.file.name).join(', ')}.\nL'envoi risque d'échouer ou d'être très long. Continuer ?`,
+        okText: 'Continuer'
+    });
+    if (!proceed) return;
+}
 
-    isUploading = true;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Envoi...';
+isUploading = true;
+btn.disabled = true;
+btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Envoi...';
 
-    try {
-        const total = queue.length;
-        const uploadedUrls = [];
-        let failed = 0;
-        let lastError = '';
+try {
+    const total = queue.length;
+    const uploadedUrls = [];
+    let failed = 0;
+    let lastError = '';
 
-        for (let i = 0; i < total; i++) {
-            const item = queue[i];
-            const path = `${item.folder}/${item.name}`;
-            const label = total > 1 ? `(${i + 1}/${total}) ${item.name}` : item.name;
-            setUploadProgress(i / total, label);
+    for (let i = 0; i < total; i++) {
+        const item = queue[i];
+        const path = `${item.folder}/${item.name}`;
+        const label = total > 1 ? `(${i + 1}/${total}) ${item.name}` : item.name;
+        setUploadProgress(i / total, label);
 
-            if (!item.name) {
-                failed++;
-                lastError = 'nom de fichier vide';
-                continue;
-            }
+        if (!item.name) {
+            failed++;
+            lastError = 'nom de fichier vide';
+            continue;
+        }
 
-            const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(path)}`;
+        const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(path)}`;
 
-            // Vérifie si le fichier existe déjà et demande confirmation avant de l'écraser
-            let sha = null;
-            const checkRes = await fetch(`${apiUrl}?ref=${BRANCH}&t=${Date.now()}`, {
-                headers: { 'Authorization': `Bearer ${activeToken}` }
+        // Vérifie si le fichier existe déjà et demande confirmation avant de l'écraser
+        let sha = null;
+        const checkRes = await fetch(`${apiUrl}?ref=${BRANCH}&t=${Date.now()}`, {
+            headers: { 'Authorization': `Bearer ${activeToken}` }
+        });
+        if (checkRes.ok) {
+            const existing = await checkRes.json();
+            const replace = await uiConfirm({
+                title: 'Fichier existant',
+                message: `"${path}" existe déjà. Le remplacer ?`,
+                okText: 'Remplacer',
+                danger: true
             });
-            if (checkRes.ok) {
-                const existing = await checkRes.json();
-                if (!confirm(`"${path}" existe déjà. Le remplacer ?`)) continue;
-                sha = existing.sha;
-            }
-
-            const payload = {
-                message: `Upload ${item.name} to /${item.folder}/ via Filebase PWA`,
-                content: await fileToBase64(item.file),
-                branch: BRANCH
-            };
-            if (sha) payload.sha = sha;
-
-            const result = await putFile(apiUrl, payload, fraction => setUploadProgress((i + fraction) / total, label));
-
-            if (result.ok) {
-                // Mise à jour locale du cache (pas besoin de recharger toute la liste)
-                const saved = result.data.content;
-                allFilesCache = allFilesCache.filter(f => f.path !== saved.path);
-                allFilesCache.push({ name: saved.name, path: saved.path, sha: saved.sha, size: saved.size, type: 'file', _folder: item.folder });
-                uploadedUrls.push(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(saved.path)}`);
-                doneItems.add(item);
-            } else {
-                failed++;
-                lastError = result.data.message || 'envoi impossible';
-            }
+            if (!replace) continue;
+            sha = existing.sha;
         }
 
-        setUploadProgress(1, 'Terminé');
+        const payload = {
+            message: `Upload ${item.name} to /${item.folder}/ via Filebase PWA`,
+            content: await fileToBase64(item.file),
+            branch: BRANCH
+        };
+        if (sha) payload.sha = sha;
 
-        if (failed > 0) {
-            showToast(doneItems.size > 0 ? `${doneItems.size} envoyé(s), ${failed} en échec : ${lastError}` : `Erreur : ${lastError}`, '❌');
-        } else if (doneItems.size > 0) {
-            // Sur iOS/Safari, la copie peut être refusée après un long envoi : message de secours
-            let copied = false;
-            try {
-                await navigator.clipboard.writeText(uploadedUrls.join('\n'));
-                copied = true;
-            } catch (e) {
-                copied = false;
-            }
+        const result = await putFile(apiUrl, payload, fraction => setUploadProgress((i + fraction) / total, label));
 
-            const first = [...doneItems][0];
-            const summary = doneItems.size === 1 ? `Envoyé dans /${first.folder}/ !` : `${doneItems.size} fichiers envoyés !`;
-            showToast(copied ? `${summary} Lien copié 🚀` : `${summary} Copie du lien impossible, utilise « Copier lien ».`, '📁');
+        if (result.ok) {
+            // Mise à jour locale du cache (pas besoin de recharger toute la liste)
+            const saved = result.data.content;
+            allFilesCache = allFilesCache.filter(f => f.path !== saved.path);
+            allFilesCache.push({ name: saved.name, path: saved.path, sha: saved.sha, size: saved.size, type: 'file', _folder: item.folder });
+            uploadedUrls.push(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(saved.path)}`);
+            doneItems.add(item);
+        } else {
+            failed++;
+            lastError = result.data.message || 'envoi impossible';
         }
-    } catch (error) {
-        showToast('Erreur lors de l\'envoi.', '❌');
-    } finally {
-        isUploading = false;
-        btn.disabled = false;
-        btn.textContent = 'Envoyer';
-
-        if (doneItems.size > 0) {
-            selectedFiles = selectedFiles.filter(item => !doneItems.has(item));
-            document.getElementById('fileInput').value = '';
-            updateSelectionUI();
-            rebuildFolders();
-        }
-        setTimeout(() => setUploadProgress(null), 600);
     }
+
+    setUploadProgress(1, 'Terminé');
+
+    if (failed > 0) {
+        showToast(doneItems.size > 0 ? `${doneItems.size} envoyé(s), ${failed} en échec : ${lastError}` : `Erreur : ${lastError}`, '❌');
+    } else if (doneItems.size > 0) {
+        // Sur iOS/Safari, la copie peut être refusée après un long envoi : message de secours
+        let copied = false;
+        try {
+            await navigator.clipboard.writeText(uploadedUrls.join('\n'));
+            copied = true;
+        } catch (e) {
+            copied = false;
+        }
+
+        const first = [...doneItems][0];
+        const summary = doneItems.size === 1 ? `Envoyé dans /${first.folder}/ !` : `${doneItems.size} fichiers envoyés !`;
+        showToast(copied ? `${summary} Lien copié 🚀` : `${summary} Copie du lien impossible, utilise « Copier lien ».`, '📁');
+    }
+} catch (error) {
+    showToast('Erreur lors de l\'envoi.', '❌');
+} finally {
+    isUploading = false;
+    btn.disabled = false;
+    btn.textContent = 'Envoyer';
+
+    if (doneItems.size > 0) {
+        selectedFiles = selectedFiles.filter(item => !doneItems.has(item));
+        document.getElementById('fileInput').value = '';
+        updateSelectionUI();
+        rebuildFolders();
+    }
+    setTimeout(() => setUploadProgress(null), 600);
+}
 }
 
         async function fetchAllFiles() {
@@ -666,6 +1036,8 @@ function rebuildFolders() {
 
     renderFilters();
     renderFiles();
+    updateRenameButton();
+    updateSelectButtons();
 }
 
         function renderFiles() {
@@ -694,6 +1066,16 @@ const safeName = escapeHtml(file.name);
 const safeFolder = escapeHtml(file._folder);
 const safeUrl = escapeHtml(rawUrl);
 
+// Mode renommage : champ de saisie (extension fixe) à la place du nom
+const { base: nameBase, ext: nameExt } = splitName(file.name);
+const pendingValue = pendingRenames[file.path] !== undefined ? pendingRenames[file.path] : nameBase;
+const nameHtml = renameMode
+    ? `<div class="flex items-center gap-1 min-w-0 flex-1">
+            <input type="text" data-rename-path="${escapeHtml(file.path)}" value="${escapeHtml(pendingValue)}" aria-label="Nouveau nom de ${safeName}" class="input input-bordered input-xs bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full min-w-0 font-mono text-xs h-8" />
+            <span class="text-xs font-mono text-zinc-500 shrink-0">${escapeHtml(nameExt)}</span>
+        </div>`
+    : `<span class="text-xs font-mono font-semibold text-zinc-200 truncate">${safeName}</span>`;
+
 let previewHtml = '';
 if (file._folder === 'audio') {
     previewHtml = `<audio controls preload="none" src="${safeUrl}" class="h-9 w-full max-w-[9rem] rounded shrink-0"></audio>`;
@@ -706,30 +1088,31 @@ if (file._folder === 'audio') {
 }
 
 return `
-    <div class="bg-zinc-950/90 border border-zinc-800/90 hover:border-zinc-700 rounded-xl p-3 flex flex-col gap-3 transition-colors">
-        <div class="flex items-center gap-3 min-w-0">
+    <div data-row class="bg-zinc-950/90 border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+            ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success shrink-0" />` : ''}
             ${previewHtml}
             <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-mono font-semibold text-zinc-200 truncate max-w-full">${safeName}</span>
-                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 shrink-0">/${safeFolder}/</span>
+                <div class="flex items-center gap-2">
+                    ${nameHtml}
+                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">/${safeFolder}/</span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="text-[10px] text-zinc-500 font-mono shrink-0">${sizeLabel}</span>
+                <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[10px] text-zinc-500 font-mono">${sizeLabel}</span>
                     <span class="text-[10px] text-zinc-600 font-mono truncate">${safeUrl}</span>
                 </div>
             </div>
         </div>
         
-        <div class="grid grid-cols-3 gap-2 w-full">
-            <button data-action="copy" data-url="${safeUrl}" class="btn btn-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-9 px-2 text-[11px]">
+        <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button data-action="copy" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
                 Copier lien
             </button>
-            <button data-action="base64" data-url="${safeUrl}" class="btn btn-sm bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-9 px-2 text-[11px] font-mono">
+            <button data-action="base64" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
                 Base64
             </button>
-            <button data-action="delete" data-folder="${safeFolder}" data-name="${safeName}" data-sha="${escapeHtml(file.sha)}" aria-label="Supprimer ${safeName}" title="Supprimer" class="btn btn-sm btn-ghost text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 h-9 px-2 justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <button data-action="delete" data-folder="${safeFolder}" data-name="${safeName}" data-sha="${escapeHtml(file.sha)}" aria-label="Supprimer ${safeName}" title="Supprimer" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             </button>
         </div>
     </div>
@@ -770,7 +1153,13 @@ return `
         }
 
         async function deleteFile(folder, fileName, sha) {
-            if (!confirm(`Supprimer définitivement "${fileName}" de /${folder}/ ?`)) return;
+const confirmed = await uiConfirm({
+    title: 'Supprimer le fichier',
+    message: `Supprimer définitivement "${fileName}" de /${folder}/ ?`,
+    okText: 'Supprimer',
+    danger: true
+});
+if (!confirmed) return;
 
 try {
     const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(`${folder}/${fileName}`)}`, {
@@ -810,6 +1199,61 @@ try {
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
         }
+let modalResolve = null;
+let renameMode = false;
+// Noms saisis en mode renommage : { chemin du fichier: texte saisi }
+let pendingRenames = {};
+let isRenaming = false;
+let selectMode = false;
+// Chemins des fichiers cochés en mode sélection
+let selectedPaths = new Set();
+let isDeletingMany = false;
+// Fenêtre interne (remplace prompt / confirm). Renvoie une promesse { ok, value }
+function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false }) {
+    // Si une fenêtre est déjà ouverte, elle est annulée
+    if (modalResolve) closeModal(false);
+
+    const modal = document.getElementById('modal');
+    const input = document.getElementById('modalInput');
+    const okBtn = document.getElementById('modalOk');
+
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    document.getElementById('modalCancel').textContent = cancelText;
+    okBtn.textContent = okText;
+    okBtn.className = danger
+        ? 'btn btn-sm bg-rose-600 hover:bg-rose-500 text-white border-none h-10 px-5 font-semibold'
+        : 'btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-10 px-5 font-semibold';
+
+    input.classList.toggle('hidden', !withInput);
+    input.value = withInput ? defaultValue : '';
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    return new Promise(resolve => {
+        modalResolve = resolve;
+        if (withInput) {
+            input.focus();
+            input.select();
+        } else {
+            okBtn.focus();
+        }
+    });
+}
+function closeModal(ok) {
+    const modal = document.getElementById('modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    const resolve = modalResolve;
+    modalResolve = null;
+    if (resolve) resolve({ ok, value: document.getElementById('modalInput').value });
+}
+async function uiConfirm(options) {
+    const result = await openModal(options);
+    return result.ok;
+}
     </script>
 </body>
 </html>
