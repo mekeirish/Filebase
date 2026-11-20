@@ -81,10 +81,13 @@ audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
 
     <!-- Zone d'upload principal -->
     <section id="uploadSection" class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 opacity-50 pointer-events-none transition-all">
-        <div class="flex items-center justify-between gap-2">
-            <h2 class="text-xs sm:text-sm font-semibold text-zinc-200 uppercase tracking-wider">Nouveau fichier</h2>
-            <span id="targetFolderBadge" class="text-[10px] sm:text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-full truncate max-w-[60%]">Dossier auto : /...</span>
-        </div>
+<div class="flex items-center justify-between gap-2">
+    <h2 class="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Nouveau fichier</h2>
+    <div class="flex items-center gap-2 min-w-0">
+        <button id="folderToggleBtn" onclick="toggleFolderMode()" aria-pressed="false" title="Envoyer dans un dossier choisi (sans tri automatique)" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono">Dossier</button>
+        <span id="targetFolderBadge" class="text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full truncate">Dossier auto : /...</span>
+    </div>
+</div>
 
         <div class="space-y-3">
 <label id="dropZone" class="flex flex-col items-center justify-center w-full h-32 sm:h-28 border-2 border-dashed border-zinc-700 hover:border-emerald-500/60 rounded-xl cursor-pointer bg-zinc-950/60 transition-colors group active:border-emerald-500">
@@ -130,14 +133,27 @@ audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
     </button>
 </div>
         </div>
-<div class="flex flex-col gap-2">
-    <input type="search" id="searchInput" oninput="setSearch(this.value)" placeholder="Rechercher un fichier..." aria-label="Rechercher un fichier" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-10" />
-    <select id="sortSelect" onchange="setSort(this.value)" aria-label="Trier les fichiers" class="select select-bordered select-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 font-mono text-xs h-10 w-full">
-        <option value="name-asc">Nom A → Z</option>
-        <option value="name-desc">Nom Z → A</option>
-        <option value="size-desc">Taille ↓</option>
-        <option value="size-asc">Taille ↑</option>
-    </select>
+<div class="space-y-2">
+    <div class="flex flex-col sm:flex-row gap-2">
+        <input type="search" id="searchInput" oninput="setSearch(this.value)" placeholder="Rechercher (nom, extension, dossier)..." aria-label="Rechercher un fichier" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-9" />
+        <select id="sortSelect" onchange="setSort(this.value)" aria-label="Trier les fichiers" class="select select-bordered select-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 font-mono text-xs h-9 sm:w-44">
+            <option value="name-asc">Nom A → Z</option>
+            <option value="name-desc">Nom Z → A</option>
+            <option value="size-desc">Taille ↓</option>
+            <option value="size-asc">Taille ↑</option>
+            <option value="folder-asc">Dossier A → Z</option>
+        </select>
+    </div>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+        <select id="folderSelect" onchange="setFilter(this.value)" aria-label="Filtrer par dossier" class="select select-bordered select-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 font-mono text-xs h-9 w-full sm:flex-1">
+            <option value="all">Tous les dossiers</option>
+        </select>
+        <select id="extSelect" onchange="setExt(this.value)" aria-label="Filtrer par extension" class="select select-bordered select-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 font-mono text-xs h-9 w-full sm:flex-1">
+            <option value="*">Toutes les extensions</option>
+        </select>
+        <button onclick="resetFilters()" class="btn btn-sm btn-ghost text-zinc-400 hover:text-white h-9 font-mono text-xs">Réinitialiser</button>
+    </div>
+    <p id="resultCount" class="text-[11px] text-zinc-500 font-mono"></p>
 </div>
 
         <div id="filesContainer" class="space-y-2.5">
@@ -164,6 +180,11 @@ audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
         <h3 id="modalTitle" class="text-sm font-semibold text-zinc-200 uppercase tracking-wider"></h3>
         <p id="modalMessage" class="text-xs text-zinc-400 whitespace-pre-line break-words"></p>
         <input type="text" id="modalInput" class="input input-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-11 hidden" />
+        <div id="modalFolderWrap" class="space-y-2 hidden">
+            <label for="modalFolderInput" class="text-[11px] text-zinc-400 font-mono uppercase tracking-wider">Dossier de destination</label>
+            <select id="modalFolderSelect" aria-label="Choisir un dossier existant" class="select select-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-11"></select>
+            <input type="text" id="modalFolderInput" placeholder="nom-du-dossier" class="input input-bordered bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-11" />
+        </div>
         <div class="flex justify-end gap-2">
             <button id="modalCancel" class="btn btn-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-10 px-4">Annuler</button>
             <button id="modalOk" class="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-10 px-5 font-semibold">OK</button>
@@ -218,6 +239,12 @@ const EXT_FOLDER_ALIASES = {
     yml: 'configs', yaml: 'configs', ini: 'configs', toml: 'configs',
     ttf: 'fonts', otf: 'fonts', woff: 'fonts', woff2: 'fonts'
 };
+// Dossiers génériques (créés par le tri automatique) : exclus de la liste des dossiers personnalisés
+const GENERIC_FOLDERS = new Set([
+    ...FOLDER_ORDER,
+    ...Object.keys(EXT_GROUPS),
+    ...Object.values(EXT_FOLDER_ALIASES)
+]);
 
         window.addEventListener('DOMContentLoaded', async () => {
             if (activeToken) {
@@ -268,6 +295,8 @@ document.getElementById('filesContainer').addEventListener('click', event => {
 })();
 (() => {
     const modal = document.getElementById('modal');
+    const folderInput = document.getElementById('modalFolderInput');
+    const folderSelect = document.getElementById('modalFolderSelect');
 
     document.getElementById('modalOk').addEventListener('click', () => closeModal(true));
     document.getElementById('modalCancel').addEventListener('click', () => closeModal(false));
@@ -277,12 +306,26 @@ document.getElementById('filesContainer').addEventListener('click', event => {
         if (event.target === modal) closeModal(false);
     });
 
-    // Entrée dans le champ : valide
-    document.getElementById('modalInput').addEventListener('keydown', event => {
-        if (event.key === 'Enter' && !event.isComposing) {
-            event.preventDefault();
-            closeModal(true);
-        }
+    // Choix d'un dossier existant : remplit le champ du dossier
+    folderSelect.addEventListener('change', () => {
+        if (folderSelect.value) folderInput.value = folderSelect.value;
+    });
+
+    // Saisie du dossier : la liste suit si le nom correspond à un dossier existant
+    folderInput.addEventListener('input', () => {
+        const clean = cleanFolderName(folderInput.value);
+        const exists = clean && Array.from(folderSelect.options).some(option => option.value === clean);
+        folderSelect.value = exists ? clean : '';
+    });
+
+    // Entrée dans un champ : valide
+    ['modalInput', 'modalFolderInput'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.isComposing) {
+                event.preventDefault();
+                closeModal(true);
+            }
+        });
     });
 
     // Échap : annule
@@ -432,6 +475,18 @@ function cleanFileName(name) {
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9.\-_]/g, '');
 }
+function cleanFolderName(name) {
+    return String(name || '')
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-_]/g, '')
+        .replace(/^[-_]+|[-_]+$/g, '');
+}
+function getCustomFolders() {
+    return FOLDERS.filter(folder => !GENERIC_FOLDERS.has(folder));
+}
+// Renvoie { name, folder } (folder = null : tri automatique), ou null si la sélection est annulée en mode Dossier
 async function askFileName(file, index, total) {
     const ext = getExtension(file.name);
     const defaultName = cleanFileName(file.name);
@@ -442,18 +497,42 @@ async function askFileName(file, index, total) {
         message: `Fichier : ${file.name}\nExtension conservée : ${ext ? '.' + ext : '(aucune)'}\nLes espaces sont remplacés par des tirets.`,
         withInput: true,
         defaultValue: defaultName,
-        okText: 'Valider'
+        okText: 'Valider',
+        withFolder: folderMode,
+        folderDefault: lastCustomFolder,
+        existingFolders: getCustomFolders()
     });
 
-    // Annulation : on garde le nom automatique
-    if (!result.ok) return defaultName;
+    if (!result.ok) {
+        // Annulation : nom automatique conservé, sauf en mode Dossier où la sélection est abandonnée
+        return folderMode ? null : { name: defaultName, folder: null };
+    }
 
     let base = cleanFileName(result.value.trim());
     if (ext && base.endsWith('.' + ext)) base = base.slice(0, -(ext.length + 1));
     base = base.replace(/^[.\-_]+|[.\-_]+$/g, '');
+    const name = base ? (ext ? `${base}.${ext}` : base) : defaultName;
 
-    if (!base) return defaultName;
-    return ext ? `${base}.${ext}` : base;
+    const folder = folderMode ? cleanFolderName(result.folder) : '';
+    if (folder) lastCustomFolder = folder;
+
+    return { name, folder: folder || null };
+}
+// Renvoie le nom du dossier ('' si vide), ou null si annulé
+async function askFolderName(count) {
+    const result = await openModal({
+        title: 'Dossier de destination',
+        message: count > 1 ? `${count} fichiers seront placés dans ce dossier.` : 'Le fichier sera placé dans ce dossier.',
+        withFolder: true,
+        folderDefault: lastCustomFolder,
+        existingFolders: getCustomFolders(),
+        okText: 'Valider'
+    });
+    if (!result.ok) return null;
+
+    const folder = cleanFolderName(result.folder);
+    if (folder) lastCustomFolder = folder;
+    return folder;
 }
 function escapeHtml(str) {
     return String(str)
@@ -742,17 +821,36 @@ async function setSelectedFiles(fileList) {
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
-    const items = [];
-    for (let i = 0; i < files.length; i++) {
-        items.push({
-            file: files[i],
-            folder: resolveFolder(files[i]),
-            // Un seul fichier : on demande le nom. Plusieurs fichiers : nom automatique, sans question
-            name: files.length === 1 ? await askFileName(files[i], i, files.length) : cleanFileName(files[i].name)
-        });
+    let aborted = false;
+    let singleInfo = null;
+    let sharedFolder = '';
+
+    if (files.length === 1) {
+        // Un seul fichier : on demande le nom (et le dossier en mode Dossier)
+        singleInfo = await askFileName(files[0], 0, 1);
+        if (singleInfo) sharedFolder = singleInfo.folder || '';
+        else aborted = true;
+    } else if (folderMode) {
+        // Plusieurs fichiers : noms automatiques, on demande seulement le dossier
+        const folder = await askFolderName(files.length);
+        if (folder === null) aborted = true;
+        else sharedFolder = folder;
     }
 
-    selectedFiles = items;
+    if (aborted) {
+        document.getElementById('fileInput').value = '';
+        showToast('Sélection annulée.', '↩️');
+        return;
+    }
+
+    if (folderMode && !sharedFolder) showToast('Dossier vide : tri automatique appliqué.', '⚠️');
+
+    selectedFiles = files.map(file => ({
+        file,
+        folder: sharedFolder || resolveFolder(file),
+        custom: Boolean(sharedFolder),
+        name: singleInfo ? singleInfo.name : cleanFileName(file.name)
+    }));
     updateSelectionUI();
 }
 function updateSelectionUI() {
@@ -761,8 +859,10 @@ function updateSelectionUI() {
     const label = document.getElementById('fileDropLabel');
     const nameInput = document.getElementById('targetFileName');
 
+    const allCustom = selectedFiles.length > 0 && selectedFiles.every(item => item.custom);
+
     if (selectedFiles.length === 0) {
-        badge.textContent = 'Dossier auto : /...';
+        badge.textContent = folderMode ? 'Dossier : au choix...' : 'Dossier auto : /...';
         prefix.textContent = 'dossier/';
         label.innerHTML = DROP_LABEL_HTML;
         nameInput.value = '';
@@ -770,7 +870,7 @@ function updateSelectionUI() {
         nameInput.placeholder = 'nom-du-fichier.ext';
     } else if (selectedFiles.length === 1) {
         const item = selectedFiles[0];
-        badge.textContent = `Dossier auto : /${item.folder}/`;
+        badge.textContent = `${allCustom ? 'Dossier' : 'Dossier auto'} : /${item.folder}/`;
         prefix.textContent = `${item.folder}/`;
         label.innerHTML = `<span class="text-emerald-400 font-semibold">${escapeHtml(item.file.name)}</span> <span class="text-zinc-500">(${formatSize(item.file.size)})</span>`;
         nameInput.value = item.name;
@@ -779,16 +879,60 @@ function updateSelectionUI() {
     } else {
         const folders = [...new Set(selectedFiles.map(item => item.folder))];
         const totalSize = selectedFiles.reduce((sum, item) => sum + item.file.size, 0);
-        badge.textContent = `Dossiers auto : ${folders.map(f => `/${f}/`).join(' ')}`;
-        prefix.textContent = 'auto/';
+        badge.textContent = `${allCustom ? 'Dossier' : 'Dossiers auto'} : ${folders.map(f => `/${f}/`).join(' ')}`;
+        prefix.textContent = allCustom ? `${selectedFiles[0].folder}/` : 'auto/';
         label.innerHTML = `<span class="text-emerald-400 font-semibold">${selectedFiles.length} fichiers</span> <span class="text-zinc-500">(${formatSize(totalSize)})</span>`;
         nameInput.value = '';
         nameInput.disabled = true;
         nameInput.placeholder = 'noms nettoyés automatiquement';
     }
 
-    // Les noms de dossiers sont maintenant de longueur variable : on adapte le retrait du champ
+    // Les noms de dossiers sont de longueur variable : on adapte le retrait du champ
     nameInput.style.paddingLeft = `${prefix.offsetWidth + 20}px`;
+}
+function updateFolderToggle() {
+    const btn = document.getElementById('folderToggleBtn');
+    if (!btn) return;
+
+    btn.className = folderMode
+        ? 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono'
+        : 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono';
+    btn.setAttribute('aria-pressed', String(folderMode));
+}
+async function toggleFolderMode() {
+    if (isUploading) return;
+
+    folderMode = !folderMode;
+    updateFolderToggle();
+
+    if (selectedFiles.length === 0) {
+        updateSelectionUI();
+        return;
+    }
+
+    if (folderMode) {
+        // Des fichiers sont déjà sélectionnés : on demande le dossier et on l'applique à tous
+        const folder = await askFolderName(selectedFiles.length);
+        if (!folder) {
+            folderMode = false;
+            updateFolderToggle();
+            updateSelectionUI();
+            if (folder === '') showToast('Dossier vide : mode Dossier désactivé.', '⚠️');
+            return;
+        }
+        selectedFiles.forEach(item => {
+            item.folder = folder;
+            item.custom = true;
+        });
+    } else {
+        // Retour au tri automatique
+        selectedFiles.forEach(item => {
+            item.folder = resolveFolder(item.file);
+            item.custom = false;
+        });
+    }
+
+    updateSelectionUI();
 }
 
         const fileToBase64 = file => new Promise((resolve, reject) => {
@@ -1001,8 +1145,8 @@ renderFiles();
         }
 function renderFilters() {
     const bar = document.getElementById('filterBar');
-    const activeClass = 'btn btn-xs bg-emerald-600 text-white border-none font-mono shrink-0';
-    const idleClass = 'btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono shrink-0';
+    const activeClass = 'btn btn-xs bg-emerald-600 text-white border-none font-mono';
+    const idleClass = 'btn btn-xs bg-zinc-800 text-zinc-300 border-zinc-700 font-mono';
 
     const makeButton = (key, label) =>
         `<button onclick="setFilter(this.dataset.filter)" data-filter="${escapeHtml(key)}" id="filter-${escapeHtml(key)}" class="${key === currentFilter ? activeClass : idleClass}">${label}</button>`;
@@ -1014,6 +1158,36 @@ function renderFilters() {
     });
 
     bar.innerHTML = makeButton('all', `Tous (${allFilesCache.length})`) + folderButtons.join('');
+
+    // Liste déroulante des dossiers
+    const folderSelect = document.getElementById('folderSelect');
+    if (folderSelect) {
+        folderSelect.innerHTML = `<option value="all">Tous les dossiers (${allFilesCache.length})</option>` +
+            FOLDERS.map(folder => {
+                const count = allFilesCache.filter(f => f._folder === folder).length;
+                return `<option value="${escapeHtml(folder)}">/${escapeHtml(folder)}/ (${count})</option>`;
+            }).join('');
+        folderSelect.value = currentFilter;
+    }
+
+    // Extensions présentes dans le dossier filtré
+    const extSelect = document.getElementById('extSelect');
+    if (extSelect) {
+        const counts = new Map();
+        allFilesCache
+            .filter(f => currentFilter === 'all' || f._folder === currentFilter)
+            .forEach(f => {
+                const e = getExtension(f.name);
+                counts.set(e, (counts.get(e) || 0) + 1);
+            });
+        const exts = [...counts.keys()].sort((a, b) => a.localeCompare(b));
+
+        if (currentExt !== '*' && !counts.has(currentExt)) currentExt = '*';
+
+        extSelect.innerHTML = `<option value="*">Toutes les extensions</option>` +
+            exts.map(e => `<option value="${escapeHtml(e)}">${e ? '.' + escapeHtml(e) : '(sans extension)'} (${counts.get(e)})</option>`).join('');
+        extSelect.value = currentExt;
+    }
 }
 function setSearch(value) {
     currentSearch = value.trim().toLowerCase();
@@ -1021,6 +1195,22 @@ function setSearch(value) {
 }
 function setSort(value) {
     currentSort = value;
+    renderFiles();
+}
+function setExt(value) {
+    currentExt = value;
+    renderFiles();
+}
+function resetFilters() {
+    currentFilter = 'all';
+    currentExt = '*';
+    currentSearch = '';
+    currentSort = 'name-asc';
+
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortSelect').value = 'name-asc';
+
+    renderFilters();
     renderFiles();
 }
 // Recalcule les dossiers présents à partir du cache, puis redessine filtres et liste
@@ -1046,12 +1236,17 @@ const sorters = {
     'name-asc': (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }),
     'name-desc': (a, b) => b.name.localeCompare(a.name, undefined, { numeric: true }),
     'size-desc': (a, b) => b.size - a.size,
-    'size-asc': (a, b) => a.size - b.size
+    'size-asc': (a, b) => a.size - b.size,
+    'folder-asc': (a, b) => a._folder.localeCompare(b._folder) || a.name.localeCompare(b.name, undefined, { numeric: true })
 };
 const filtered = allFilesCache
     .filter(f => currentFilter === 'all' || f._folder === currentFilter)
-    .filter(f => !currentSearch || f.name.toLowerCase().includes(currentSearch))
+    .filter(f => currentExt === '*' || getExtension(f.name) === currentExt)
+    .filter(f => !currentSearch || f.name.toLowerCase().includes(currentSearch) || f._folder.toLowerCase().includes(currentSearch))
     .sort(sorters[currentSort] || sorters['name-asc']);
+
+const countEl = document.getElementById('resultCount');
+if (countEl) countEl.textContent = `${filtered.length} / ${allFilesCache.length} fichier(s)`;
 
 if (filtered.length === 0) {
     const message = currentSearch ? 'Aucun fichier ne correspond à la recherche.' : 'Aucun fichier trouvé dans cette catégorie.';
@@ -1208,14 +1403,22 @@ let selectMode = false;
 // Chemins des fichiers cochés en mode sélection
 let selectedPaths = new Set();
 let isDeletingMany = false;
-// Fenêtre interne (remplace prompt / confirm). Renvoie une promesse { ok, value }
-function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false }) {
+// Mode "Dossier" : les envois vont dans un dossier choisi, sans tri par extension
+let folderMode = false;
+let lastCustomFolder = '';
+// '*' = toutes les extensions
+let currentExt = '*';
+// Fenêtre interne (remplace prompt / confirm). Renvoie une promesse { ok, value, folder }
+function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false, withFolder = false, folderDefault = '', existingFolders = [] }) {
     // Si une fenêtre est déjà ouverte, elle est annulée
     if (modalResolve) closeModal(false);
 
     const modal = document.getElementById('modal');
     const input = document.getElementById('modalInput');
     const okBtn = document.getElementById('modalOk');
+    const folderWrap = document.getElementById('modalFolderWrap');
+    const folderSelect = document.getElementById('modalFolderSelect');
+    const folderInput = document.getElementById('modalFolderInput');
 
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalMessage').textContent = message;
@@ -1228,6 +1431,13 @@ function openModal({ title, message = '', withInput = false, defaultValue = '', 
     input.classList.toggle('hidden', !withInput);
     input.value = withInput ? defaultValue : '';
 
+    folderWrap.classList.toggle('hidden', !withFolder);
+    folderInput.value = withFolder ? folderDefault : '';
+    folderSelect.innerHTML = '<option value="">— Dossier existant —</option>' +
+        existingFolders.map(f => `<option value="${escapeHtml(f)}">/${escapeHtml(f)}/</option>`).join('');
+    folderSelect.value = existingFolders.includes(folderDefault) ? folderDefault : '';
+    folderSelect.classList.toggle('hidden', existingFolders.length === 0);
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
@@ -1236,6 +1446,9 @@ function openModal({ title, message = '', withInput = false, defaultValue = '', 
         if (withInput) {
             input.focus();
             input.select();
+        } else if (withFolder) {
+            folderInput.focus();
+            folderInput.select();
         } else {
             okBtn.focus();
         }
@@ -1248,7 +1461,11 @@ function closeModal(ok) {
 
     const resolve = modalResolve;
     modalResolve = null;
-    if (resolve) resolve({ ok, value: document.getElementById('modalInput').value });
+    if (resolve) resolve({
+        ok,
+        value: document.getElementById('modalInput').value,
+        folder: document.getElementById('modalFolderInput').value
+    });
 }
 async function uiConfirm(options) {
     const result = await openModal(options);
