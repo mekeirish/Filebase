@@ -9,13 +9,147 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <style>
 body {
-    background-color: #09090b;
-    background-image: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 75%);
+    background-color: #050507;
+    background-image:
+        radial-gradient(600px circle at 15% 0%, rgba(16, 185, 129, 0.07), transparent 60%),
+        radial-gradient(500px circle at 90% 25%, rgba(245, 158, 11, 0.03), transparent 60%),
+        radial-gradient(circle at 50% 0%, #0e0e11 0%, #050507 75%);
+    background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden;
 }
 audio::-webkit-media-controls-panel, video::-webkit-media-controls-panel {
     background-color: #27272a;
+}
+/* Surfaces sombres, peu transparentes, flou léger, aucune ombre */
+header, section, #toast, #modal > div {
+    background: rgba(14, 14, 17, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+header {
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+#authPanel {
+    background: rgba(26, 19, 8, 0.94);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+#modal {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+#modal > div {
+    background: rgba(16, 16, 19, 0.97);
+}
+
+#toast {
+    background: rgba(28, 28, 32, 0.97);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #f4f4f5;
+}
+
+/* Aucune ombre nulle part */
+[class*="shadow"], .btn, .input, .select, .checkbox {
+    box-shadow: none !important;
+}
+
+/* Textes : gris plus clairs pour rester lisibles sur fond sombre */
+.text-zinc-400 { color: #b8b8c0; }
+.text-zinc-500 { color: #a1a1aa; }
+.text-zinc-600 { color: #8e8e98; }
+.text-zinc-300 { color: #d4d4d8; }
+.text-zinc-200 { color: #ececef; }
+
+/* Zone de dépôt */
+#dropZone {
+    background: rgba(8, 8, 10, 0.75);
+    border-color: rgba(255, 255, 255, 0.16);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+#dropZone:hover {
+    border-color: rgba(16, 185, 129, 0.7);
+}
+
+/* Champs */
+.input, .select {
+    background: #09090b;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f4f4f5;
+}
+.input::placeholder {
+    color: #8e8e98;
+}
+.input:focus, .input:focus-within, .select:focus {
+    border-color: rgba(16, 185, 129, 0.8);
+}
+select option {
+    background-color: #131316;
+    color: #f4f4f5;
+}
+
+/* Boutons */
+.btn {
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.btn:active {
+    transform: scale(0.97);
+}
+.btn.bg-zinc-800, .btn.bg-zinc-900 {
+    background-color: #1c1c20;
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #ececef;
+}
+.btn.bg-zinc-800:hover, .btn.bg-zinc-900:hover {
+    background-color: #26262b;
+}
+.btn.bg-emerald-600 {
+    background-color: #047857;
+    border-color: #059669;
+    color: #ffffff;
+}
+.btn.bg-emerald-600:hover {
+    background-color: #059669;
+    color: #ffffff;
+}
+.btn.bg-rose-600 {
+    background-color: #be123c;
+    border-color: #e11d48;
+    color: #ffffff;
+}
+.btn.bg-rose-600:hover {
+    background-color: #e11d48;
+    color: #ffffff;
+}
+.btn[data-action="base64"]:hover {
+    background-color: #047857;
+    border-color: #059669;
+    color: #ffffff;
+}
+.btn:disabled {
+    opacity: 0.55;
+    color: #d4d4d8;
+}
+
+/* Lignes de fichiers */
+.glass-row {
+    background: rgba(9, 9, 11, 0.9);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.glass-row:hover {
+    background: rgba(18, 18, 22, 0.95);
+}
+.glass-row.border-zinc-800\/90 {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+.glass-row.border-zinc-800\/90:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.glass-row.border-emerald-500\/60 {
+    background: rgba(6, 40, 30, 0.9);
 }
 @media (max-width: 640px) {
     button, .btn, input, select, a {
@@ -261,6 +395,7 @@ document.getElementById('filesContainer').addEventListener('click', event => {
 
     const { action, url, folder, name, sha } = btn.dataset;
     if (action === 'copy') copyUrl(url);
+    else if (action === 'download') downloadFile(url, name, btn);
     else if (action === 'base64') copyAsBase64(url, btn);
     else if (action === 'delete') deleteFile(folder, name, sha);
 });
@@ -1283,7 +1418,7 @@ if (file._folder === 'audio') {
 }
 
 return `
-    <div data-row class="bg-zinc-950/90 border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+    <div data-row class="glass-row border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
         <div class="flex items-center gap-3 min-w-0 flex-1">
             ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success shrink-0" />` : ''}
             ${previewHtml}
@@ -1302,6 +1437,9 @@ return `
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <button data-action="copy" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
                 Copier lien
+            </button>
+            <button data-action="download" data-url="${safeUrl}" data-name="${safeName}" aria-label="Télécharger ${safeName}" title="Télécharger" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
             <button data-action="base64" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
                 Base64
@@ -1346,6 +1484,35 @@ return `
                 btnElement.textContent = originalText;
             }
         }
+// Télécharge le fichier via fetch + blob (l'attribut download est ignoré sur un lien d'un autre domaine)
+async function downloadFile(url, fileName, btnElement) {
+    const originalHtml = btnElement.innerHTML;
+    btnElement.disabled = true;
+    btnElement.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erreur ${response.status}`);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+
+        showToast(`${fileName} téléchargé.`, '⬇️');
+    } catch (error) {
+        console.error(error);
+        showToast('Erreur lors du téléchargement.', '❌');
+    } finally {
+        btnElement.disabled = false;
+        btnElement.innerHTML = originalHtml;
+    }
+}
 
         async function deleteFile(folder, fileName, sha) {
 const confirmed = await uiConfirm({
