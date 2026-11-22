@@ -684,6 +684,27 @@ function formatSize(bytes) {
     if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
     return `${(bytes / 1024).toFixed(1)} Ko`;
 }
+function formatDuration(seconds) {
+    if (!isFinite(seconds) || seconds <= 0) return '';
+    const total = Math.round(seconds);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    const ss = String(s).padStart(2, '0');
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${ss}`;
+    return `${m}:${ss}`;
+}
+// Appelée quand le navigateur a lu les métadonnées d'un audio / d'une vidéo
+function setDuration(el) {
+    const d = el.duration;
+    if (!isFinite(d) || d <= 0) return;
+
+    durationCache.set(el.getAttribute('src'), d);
+
+    const row = el.closest('[data-row]');
+    const slot = row && row.querySelector('[data-duration]');
+    if (slot) slot.textContent = `⏱ ${formatDuration(d)}`;
+}
 function splitName(name) {
     const dotIndex = name.lastIndexOf('.');
     if (dotIndex > 0) return { base: name.slice(0, dotIndex), ext: name.slice(dotIndex) };
@@ -1396,6 +1417,10 @@ const safeName = escapeHtml(file.name);
 const safeFolder = escapeHtml(file._folder);
 const safeUrl = escapeHtml(rawUrl);
 
+// Durée : déjà connue (cache) ou remplie dès que les métadonnées sont lues
+const cachedDuration = durationCache.get(rawUrl);
+const durationText = cachedDuration ? `⏱ ${formatDuration(cachedDuration)}` : '';
+
 // Mode renommage : champ de saisie (extension fixe) à la place du nom
 const { base: nameBase, ext: nameExt } = splitName(file.name);
 const pendingValue = pendingRenames[file.path] !== undefined ? pendingRenames[file.path] : nameBase;
@@ -1404,37 +1429,39 @@ const nameHtml = renameMode
             <input type="text" data-rename-path="${escapeHtml(file.path)}" value="${escapeHtml(pendingValue)}" aria-label="Nouveau nom de ${safeName}" class="input input-bordered input-xs bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full min-w-0 font-mono text-xs h-8" />
             <span class="text-xs font-mono text-zinc-500 shrink-0">${escapeHtml(nameExt)}</span>
         </div>`
-    : `<span class="text-xs font-mono font-semibold text-zinc-200 truncate">${safeName}</span>`;
+    : `<p class="text-xs font-mono font-semibold text-zinc-100 break-all leading-snug">${safeName}</p>`;
 
 let previewHtml = '';
+let playerHtml = '';
 if (file._folder === 'audio') {
-    previewHtml = `<audio controls preload="none" src="${safeUrl}" class="h-9 w-full max-w-[9rem] rounded shrink-0"></audio>`;
+    previewHtml = `<div class="w-10 h-10 shrink-0 rounded bg-zinc-950 border border-zinc-800 flex items-center justify-center text-base text-emerald-400">♪</div>`;
+    playerHtml = `<audio controls preload="metadata" src="${safeUrl}" onloadedmetadata="setDuration(this)" class="w-full h-10 rounded"></audio>`;
 } else if (file._folder === 'images') {
-    previewHtml = `<img src="${safeUrl}" alt="${safeName}" class="w-11 h-11 object-cover rounded-lg border border-zinc-800 shrink-0" loading="lazy" />`;
+    previewHtml = `<img src="${safeUrl}" class="w-10 h-10 shrink-0 object-cover rounded border border-zinc-800" />`;
 } else if (file._folder === 'video') {
-    previewHtml = `<video src="${safeUrl}" class="w-16 h-11 object-cover rounded-lg border border-zinc-800 shrink-0" preload="none"></video>`;
+    previewHtml = `<video src="${safeUrl}" onloadedmetadata="setDuration(this)" class="w-16 h-10 shrink-0 object-cover rounded border border-zinc-800" preload="metadata"></video>`;
 } else {
-    previewHtml = `<div class="w-11 h-11 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400 uppercase shrink-0">${escapeHtml(file.name.split('.').pop())}</div>`;
+    previewHtml = `<div class="w-10 h-10 shrink-0 rounded bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400 uppercase">${escapeHtml(file.name.split('.').pop())}</div>`;
 }
 
 return `
-    <div data-row class="glass-row border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-            ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success shrink-0" />` : ''}
+    <div data-row class="glass-row border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col gap-3 transition-colors">
+        <div class="flex items-start gap-3 min-w-0">
+            ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success shrink-0 mt-2" />` : ''}
             ${previewHtml}
             <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                    ${nameHtml}
-                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">/${safeFolder}/</span>
-                </div>
-                <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[10px] text-zinc-500 font-mono">${sizeLabel}</span>
-                    <span class="text-[10px] text-zinc-600 font-mono truncate">${safeUrl}</span>
+                ${nameHtml}
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5">
+                    <span class="text-[11px] text-zinc-400 font-mono">${sizeLabel}</span>
+                    <span data-duration class="text-[11px] text-emerald-400 font-mono">${durationText}</span>
+                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">/${safeFolder}/</span>
                 </div>
             </div>
         </div>
-        
-        <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+
+        ${playerHtml}
+
+        <div class="flex flex-wrap items-center justify-end gap-2">
             <button data-action="copy" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
                 Copier lien
             </button>
@@ -1575,6 +1602,8 @@ let folderMode = false;
 let lastCustomFolder = '';
 // '*' = toutes les extensions
 let currentExt = '*';
+// Durées déjà lues (clé : URL du fichier, valeur : secondes), pour les garder après un nouveau rendu
+let durationCache = new Map();
 // Fenêtre interne (remplace prompt / confirm). Renvoie une promesse { ok, value, folder }
 function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false, withFolder = false, folderDefault = '', existingFolders = [] }) {
     // Si une fenêtre est déjà ouverte, elle est annulée
