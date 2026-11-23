@@ -151,6 +151,99 @@ select option {
 .glass-row.border-emerald-500\/60 {
     background: rgba(6, 40, 30, 0.9);
 }
+/* Ligne de séparation des groupes par date */
+.day-line {
+    flex: 1;
+    height: 2px;
+    border-radius: 9999px;
+    background: #22d3ee;
+    opacity: 0.75;
+}
+
+/* Bouton play / pause jaune cyber */
+.play-btn {
+    position: relative;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    color: #0a0a0a;
+    background: linear-gradient(145deg, #fff44f 0%, #ffd300 48%, #e0ae00 100%);
+    border: 1px solid rgba(255, 244, 120, 0.75);
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.15s;
+}
+.play-btn:hover {
+    filter: brightness(1.1) saturate(1.1);
+}
+.play-btn:active {
+    transform: scale(0.93);
+}
+.play-btn:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+.play-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+.play-btn .icon-play {
+    margin-left: 2px;
+}
+.play-btn .icon-pause {
+    display: none;
+}
+.play-btn[data-playing="true"] .icon-play {
+    display: none;
+}
+.play-btn[data-playing="true"] .icon-pause {
+    display: block;
+}
+.play-btn[data-playing="true"]::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    border: 2px solid #ffd300;
+    opacity: 0;
+    pointer-events: none;
+    animation: playRing 1.4s ease-out infinite;
+}
+@keyframes playRing {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .play-btn[data-playing="true"]::after { animation: none; opacity: 0.6; }
+}
+
+/* Étoile des favoris */
+.fav-btn {
+    background: none;
+    border: none;
+    padding: 0.25rem 0.35rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: #a1a1aa;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s, color 0.2s;
+}
+.fav-btn:hover {
+    color: #ffd300;
+}
+.fav-btn:active {
+    transform: scale(0.85);
+}
+
+/* Barre de progression du mini-lecteur */
+.mini-seek {
+    accent-color: #ffd300;
+    height: 1.5rem;
+}
 @media (max-width: 640px) {
     button, .btn, input, select, a {
         touch-action: manipulation;
@@ -215,9 +308,10 @@ select option {
 
     <!-- Zone d'upload principal -->
     <section id="uploadSection" class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 opacity-50 pointer-events-none transition-all">
-<div class="flex items-center justify-between gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
     <h2 class="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Nouveau fichier</h2>
-    <div class="flex items-center gap-2 min-w-0">
+    <div class="flex flex-wrap items-center justify-end gap-2 min-w-0">
+        <button id="autoSendBtn" onclick="toggleAutoSend()" aria-pressed="false" title="Envoyer dès la validation du nom, sans appuyer sur Envoyer" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono">Auto</button>
         <button id="folderToggleBtn" onclick="toggleFolderMode()" aria-pressed="false" title="Envoyer dans un dossier choisi (sans tri automatique)" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono">Dossier</button>
         <span id="targetFolderBadge" class="text-[11px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded-full truncate">Dossier auto : /...</span>
     </div>
@@ -253,20 +347,22 @@ select option {
 
     <!-- Bibliothèque multi-dossiers -->
     <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
-        <div class="flex flex-col gap-3">
-<div id="filterBar" class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-    <button onclick="setFilter('all')" id="filter-all" class="btn btn-xs bg-emerald-600 text-white border-none font-mono shrink-0">Tous</button>
+<div style="top: env(safe-area-inset-top, 0px);" class="sticky z-30 -mx-5 px-5 py-2 bg-[#0b0b0e] border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div id="filterBar" class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+        <button onclick="setFilter('all')" id="filter-all" class="btn btn-xs bg-emerald-600 text-white border-none font-mono">Tous</button>
+    </div>
+    <div class="flex flex-wrap items-center justify-end gap-1 self-end sm:self-auto">
+        <button id="deleteSelectedBtn" onclick="deleteSelected()" class="btn btn-xs bg-rose-600 hover:bg-rose-500 text-white border-none gap-1 font-mono hidden" disabled>Supprimer (0)</button>
+        <button id="moveSelectedBtn" onclick="moveSelected()" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 gap-1 font-mono hidden" disabled>Déplacer (0)</button>
+        <button id="selectAllBtn" onclick="toggleSelectAll()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono hidden">Tout</button>
+        <button id="selectBtn" onclick="toggleSelectMode()" aria-pressed="false" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Sélectionner</button>
+        <button id="renameBtn" onclick="handleRenameClick()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Renommer</button>
+        <button onclick="fetchAllFiles()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 self-end sm:self-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            Actualiser
+        </button>
+    </div>
 </div>
-<div class="flex flex-wrap items-center justify-end gap-1 self-end sm:self-auto">
-    <button id="deleteSelectedBtn" onclick="deleteSelected()" class="btn btn-xs bg-rose-600 hover:bg-rose-500 text-white border-none gap-1 font-mono hidden" disabled>Supprimer (0)</button>
-    <button id="selectBtn" onclick="toggleSelectMode()" aria-pressed="false" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Sélectionner</button>
-    <button id="renameBtn" onclick="handleRenameClick()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1">Renommer</button>
-    <button onclick="fetchAllFiles()" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 self-end sm:self-auto">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-        Actualiser
-    </button>
-</div>
-        </div>
 <div class="space-y-2">
     <div class="flex flex-col sm:flex-row gap-2">
         <input type="search" id="searchInput" oninput="setSearch(this.value)" placeholder="Rechercher (nom, extension, dossier)..." aria-label="Rechercher un fichier" class="input input-bordered input-sm bg-zinc-950 border-zinc-800 focus:border-emerald-500 w-full font-mono text-xs h-9" />
@@ -305,9 +401,10 @@ select option {
 </footer>
 
     <!-- Toast -->
-<div id="toast" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-5 sm:right-5 bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-4 py-3 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 max-w-md">
-    <span id="toastIcon" class="shrink-0">✅</span>
-    <span id="toastMsg" class="min-w-0 break-words">Action effectuée</span>
+<div id="toast" style="top: calc(env(safe-area-inset-top, 0px) + 1rem);" class="fixed left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-4 py-3 rounded-xl shadow-2xl transform -translate-y-32 opacity-0 pointer-events-none transition-all duration-300 z-[70] flex items-center gap-2">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">Action effectuée</span>
+<button id="toastAction" type="button" class="hidden ml-auto shrink-0 px-2 py-1 text-xs font-semibold text-yellow-300 underline"></button>
 </div>
 <div id="modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
     <div class="w-full max-w-sm bg-zinc-900/95 border border-zinc-800/90 rounded-2xl p-5 shadow-2xl space-y-4" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -322,6 +419,63 @@ select option {
         <div class="flex justify-end gap-2">
             <button id="modalCancel" class="btn btn-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-10 px-4">Annuler</button>
             <button id="modalOk" class="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white border-none h-10 px-5 font-semibold">OK</button>
+        </div>
+    </div>
+</div>
+<div id="imageSheet" class="fixed inset-0 z-[45] hidden items-end sm:items-center justify-center p-4 bg-black/80">
+    <div class="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3" role="dialog" aria-modal="true" aria-label="Détails de l'image">
+        <img id="imageSheetImg" alt="" class="w-full max-h-64 object-contain rounded-lg bg-black" />
+        <p id="imageSheetName" class="text-xs font-mono font-semibold text-zinc-100 break-all leading-snug"></p>
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span id="imageSheetSize" class="text-[11px] text-zinc-400 font-mono"></span>
+            <span id="imageSheetDims" class="text-[11px] text-emerald-400 font-mono"></span>
+            <span id="imageSheetFolder" class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800"></span>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2">
+            <button id="imageSheetFav" data-sheet-action="fav" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                ☆ Favori
+            </button>
+            <button data-sheet-action="copy" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                Copier lien
+            </button>
+            <button data-sheet-action="download" aria-label="Télécharger" title="Télécharger" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button data-sheet-action="base64" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
+                Base64
+            </button>
+            <button data-sheet-action="delete" aria-label="Supprimer" title="Supprimer" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+            <button data-sheet-action="close" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-3">
+                Fermer
+            </button>
+        </div>
+    </div>
+</div>
+<div id="miniPlayer" class="fixed inset-x-0 bottom-0 z-40 hidden" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+    <div class="max-w-3xl mx-auto px-3 pb-3">
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 space-y-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <button type="button" id="miniPrev" aria-label="Son précédent" class="btn btn-sm btn-circle btn-ghost text-zinc-300 shrink-0">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
+                </button>
+                <button type="button" id="miniPlay" data-playing="false" aria-pressed="false" aria-label="Lecture / pause" class="play-btn">
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
+                </button>
+                <button type="button" id="miniNext" aria-label="Son suivant" class="btn btn-sm btn-circle btn-ghost text-zinc-300 shrink-0">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
+                </button>
+                <p id="miniName" class="flex-1 min-w-0 text-xs font-mono font-semibold text-zinc-100 truncate"></p>
+                <button type="button" id="miniClose" aria-label="Fermer le lecteur" class="btn btn-sm btn-circle btn-ghost text-zinc-400 shrink-0">✕</button>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="miniTime" class="text-[11px] text-zinc-400 font-mono w-9 text-right shrink-0">0:00</span>
+                <input type="range" id="miniSeek" min="0" max="1000" step="1" value="0" aria-label="Position de lecture" class="mini-seek flex-1 min-w-0" />
+                <span id="miniDur" class="text-[11px] text-zinc-400 font-mono w-9 shrink-0">0:00</span>
+                <button type="button" id="miniAuto" title="Enchaîner automatiquement le son suivant" aria-pressed="true" class="btn btn-xs btn-ghost text-zinc-400 hover:text-white font-mono">Auto</button>
+            </div>
         </div>
     </div>
 </div>
@@ -380,25 +534,141 @@ const GENERIC_FOLDERS = new Set([
     ...Object.values(EXT_FOLDER_ALIASES)
 ]);
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            if (activeToken) {
-                document.getElementById('ghTokenInput').value = activeToken;
-                await validateTokenSilently(activeToken);
-            } else {
-                setAuthState(false);
-            }
-        });
+window.addEventListener('DOMContentLoaded', async () => {
+    applySavedUI();
+    // Affichage instantané : la dernière liste connue s'affiche tout de suite, puis elle est mise à jour
+    renderCachedList();
+    if (activeToken) {
+        document.getElementById('authPanel').classList.add('hidden');
+        document.getElementById('ghTokenInput').value = activeToken;
+        await validateTokenSilently(activeToken);
+    } else {
+        setAuthState(false);
+    }
+});
 // Un seul écouteur pour tous les boutons de la liste (aucune donnée de fichier dans des onclick)
 document.getElementById('filesContainer').addEventListener('click', event => {
+    // Les cases à cocher sont gérées par leur événement "change"
+    if (event.target.matches('input[type="checkbox"]')) return;
+
     const btn = event.target.closest('[data-action]');
     if (!btn) return;
 
-    const { action, url, folder, name, sha } = btn.dataset;
+    // Le clic qui suit un appui long est ignoré
+    if (longPressFired) {
+        longPressFired = false;
+        return;
+    }
+
+    const { action, url, folder, name, sha, path } = btn.dataset;
     if (action === 'copy') copyUrl(url);
     else if (action === 'download') downloadFile(url, name, btn);
     else if (action === 'base64') copyAsBase64(url, btn);
     else if (action === 'delete') deleteFile(folder, name, sha);
+    else if (action === 'play') toggleAudioPlay(btn);
+    else if (action === 'toggle') toggleAudioDetails(btn);
+    else if (action === 'tile') onTileClick(btn);
+    else if (action === 'rename') renameOneFile(path);
+    else if (action === 'fav') toggleFavorite(sha);
+    else if (action === 'info') openImageSheet(path);
+    else if (action === 'group') toggleDayGroup(btn);
 });
+// Appui long (0,5 s) sur une miniature ou un nom de son : mode sélection (comme une galerie).
+// Déjà en mode sélection, un appui long sur une miniature ouvre ses détails.
+(() => {
+    const container = document.getElementById('filesContainer');
+    const LONG_PRESS_MS = 500;
+    const MOVE_TOLERANCE = 10;
+    let timer = null;
+    let startX = 0;
+    let startY = 0;
+
+    const cancel = () => {
+        clearTimeout(timer);
+        timer = null;
+    };
+
+    container.addEventListener('pointerdown', event => {
+        longPressFired = false;
+        cancel();
+
+        if (event.target.matches('input[type="checkbox"]') || event.target.closest('[data-action="info"]')) return;
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+        const tile = event.target.closest('[data-tile]');
+        const audioName = tile ? null : event.target.closest('[data-action="toggle"]');
+        const source = tile || audioName;
+        if (!source) return;
+        const path = source.dataset.path;
+
+        startX = event.clientX;
+        startY = event.clientY;
+        timer = setTimeout(() => {
+            timer = null;
+            longPressFired = true;
+            if (navigator.vibrate) navigator.vibrate(30);
+            if (!selectMode) enterSelectModeWith(path);
+            else if (tile) openImageSheet(path);
+        }, LONG_PRESS_MS);
+    });
+
+    // Le doigt bouge (défilement) : ce n'est pas un appui long
+    container.addEventListener('pointermove', event => {
+        if (timer && Math.hypot(event.clientX - startX, event.clientY - startY) > MOVE_TOLERANCE) cancel();
+    });
+
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => container.addEventListener(type, cancel));
+
+    // Empêche le menu natif du navigateur sur les miniatures et les noms de sons
+    container.addEventListener('contextmenu', event => {
+        if (event.target.closest('[data-tile], [data-action="toggle"]')) event.preventDefault();
+    });
+
+    container.addEventListener('keydown', event => {
+        const tile = event.target.closest && event.target.closest('[data-tile]');
+        if (!tile || event.target !== tile) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            tile.click();
+        }
+    });
+})();
+(() => {
+    const sheet = document.getElementById('imageSheet');
+
+    sheet.addEventListener('click', event => {
+        if (!imageSheetCurrent) return;
+
+        // Clic sur le fond sombre : ferme (sauf juste après l'ouverture, pour éviter un clic fantôme)
+        if (event.target === sheet) {
+            if (Date.now() - imageSheetCurrent.openedAt > 400) closeImageSheet();
+            return;
+        }
+
+        const btn = event.target.closest('[data-sheet-action]');
+        if (!btn) return;
+
+        const { file, url } = imageSheetCurrent;
+        const action = btn.dataset.sheetAction;
+
+        if (action === 'close') closeImageSheet();
+        else if (action === 'copy') copyUrl(url);
+        else if (action === 'download') downloadFile(url, file.name, btn);
+        else if (action === 'base64') copyAsBase64(url, btn);
+        else if (action === 'fav') {
+            toggleFavorite(file.sha);
+            btn.textContent = isFavorite(file) ? '★ Favori' : '☆ Favori';
+        } else if (action === 'delete') {
+            closeImageSheet();
+            deleteFile(file._folder, file.name, file.sha);
+        }
+    });
+
+    // Échap : ferme
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && imageSheetCurrent) closeImageSheet();
+    });
+})();
 (() => {
     const dropZone = document.getElementById('dropZone');
     const highlight = on => {
@@ -694,16 +964,274 @@ function formatDuration(seconds) {
     if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${ss}`;
     return `${m}:${ss}`;
 }
+// Jour local au format AAAA-MM-JJ
+function getDayKey(date) {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// Jour de modification d'un son ('' si la date n'est pas encore connue)
+function getAudioDayKey(file) {
+    const iso = audioDates.get(`${file.path}|${file.sha}`);
+    return iso ? getDayKey(iso) : '';
+}
+function formatDayLabel(key) {
+    if (!key) return 'Date inconnue';
+
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (key === getDayKey(now)) return "Aujourd'hui";
+    if (key === getDayKey(yesterday)) return 'Hier';
+
+    const [y, m, d] = key.split('-').map(Number);
+    const label = new Date(y, m - 1, d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+function saveAudioDates() {
+    // Ne garde que les dates des fichiers audio encore présents
+    const valid = new Set(allFilesCache.filter(f => f._folder === 'audio').map(f => `${f.path}|${f.sha}`));
+    for (const key of [...audioDates.keys()]) {
+        if (!valid.has(key)) audioDates.delete(key);
+    }
+    try {
+        localStorage.setItem(AUDIO_DATES_KEY, JSON.stringify([...audioDates]));
+    } catch (e) {}
+}
+// Lit la date du dernier commit de chaque son (GraphQL, 40 fichiers par requête)
+async function loadAudioDates() {
+    if (!activeToken || isLoadingDates) return;
+
+    const missing = allFilesCache.filter(f => f._folder === 'audio' && !audioDates.has(`${f.path}|${f.sha}`));
+    if (missing.length === 0) return;
+
+    isLoadingDates = true;
+    let changed = false;
+
+    try {
+        for (let i = 0; i < missing.length; i += 40) {
+            const batch = missing.slice(i, i + 40);
+            const variables = {};
+            batch.forEach((file, j) => { variables[`p${j}`] = file.path; });
+
+            const declarations = batch.map((_, j) => `$p${j}: String!`).join(', ');
+            const fields = batch.map((_, j) => `h${j}: history(first: 1, path: $p${j}) { nodes { committedDate } }`).join('\n');
+            const query = `query(${declarations}) { repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") { object(expression: "${BRANCH}") { ... on Commit { ${fields} } } } }`;
+
+            const data = await ghRequest('https://api.github.com/graphql', 'POST', { query, variables });
+            if (data.errors && !data.data) throw new Error(data.errors[0].message);
+
+            const commit = data.data && data.data.repository && data.data.repository.object;
+            if (!commit) continue;
+
+            batch.forEach((file, j) => {
+                const nodes = commit[`h${j}`] && commit[`h${j}`].nodes;
+                if (nodes && nodes[0]) {
+                    audioDates.set(`${file.path}|${file.sha}`, nodes[0].committedDate);
+                    changed = true;
+                }
+            });
+        }
+    } catch (e) {
+        showToast(`Dates indisponibles : ${e.message}`, '⚠️');
+    } finally {
+        isLoadingDates = false;
+    }
+
+    if (changed) {
+        saveAudioDates();
+        if (currentFilter === 'audio') renderFiles();
+    }
+}
 // Appelée quand le navigateur a lu les métadonnées d'un audio / d'une vidéo
 function setDuration(el) {
     const d = el.duration;
     if (!isFinite(d) || d <= 0) return;
 
-    durationCache.set(el.getAttribute('src'), d);
+    const src = el.getAttribute('src');
+    const previous = durationCache.get(src);
+    const isNew = previous === undefined;
+    durationCache.set(src, d);
+    if (isNew || Math.abs(previous - d) > 0.5) scheduleSaveDurations();
 
     const row = el.closest('[data-row]');
     const slot = row && row.querySelector('[data-duration]');
     if (slot) slot.textContent = `⏱ ${formatDuration(d)}`;
+
+    // Tri par durée : la liste est réordonnée quand de nouvelles durées sont connues
+    if (isNew && currentSort.startsWith('duration')) scheduleDurationResort();
+}
+// Réordonne la liste (une seule fois pour plusieurs durées lues), sans couper un son en cours
+function scheduleDurationResort() {
+    clearTimeout(durationResortTimer);
+    durationResortTimer = setTimeout(() => {
+        const playing = Array.from(document.querySelectorAll('#filesContainer audio')).some(a => !a.paused);
+        if (!playing) renderFiles();
+    }, 600);
+}
+// Les tris par durée n'existent que dans l'onglet Audio
+function updateSortOptions() {
+    const select = document.getElementById('sortSelect');
+    if (!select) return;
+
+    const wanted = currentFilter === 'audio';
+    const present = Boolean(select.querySelector('option[value="duration-desc"]'));
+
+    if (!wanted && currentSort.startsWith('duration')) currentSort = 'name-asc';
+
+    if (wanted && !present) {
+        select.insertAdjacentHTML('beforeend', '<option value="duration-desc">Durée ↓ (longs d\'abord)</option><option value="duration-asc">Durée ↑ (courts d\'abord)</option>');
+    } else if (!wanted && present) {
+        select.querySelectorAll('option[value^="duration"]').forEach(option => option.remove());
+    }
+
+    select.value = currentSort;
+}
+// Lecture / pause d'un son de la liste compacte, via le lecteur global
+function toggleAudioPlay(btn) {
+    const row = btn.closest('[data-row]');
+    const file = row && allFilesCache.find(f => f.path === row.dataset.path);
+    if (!file) return;
+
+    if (isTrackPlaying(file)) player.pause();
+    else playTrack(file);
+}
+// Synchronise l'état lecture / pause de tous les boutons de la liste avec le lecteur global
+function updatePlayIcon() {
+    document.querySelectorAll('#filesContainer [data-action="play"]').forEach(btn => {
+        const row = btn.closest('[data-row]');
+        const on = Boolean(currentTrack) && !player.paused && Boolean(row) && row.dataset.path === currentTrack.path;
+        btn.dataset.playing = String(on);
+        btn.setAttribute('aria-pressed', String(on));
+    });
+}
+// Ouvre le détail d'un son et referme tous les autres
+function toggleAudioDetails(btn) {
+    const row = btn.closest('[data-row]');
+    const details = row && row.querySelector('[data-details]');
+    if (!details) return;
+
+    const willOpen = details.classList.contains('hidden');
+    document.querySelectorAll('#filesContainer [data-details]').forEach(d => d.classList.add('hidden'));
+    if (willOpen) details.classList.remove('hidden');
+
+    expandedAudioPath = willOpen ? btn.dataset.path : null;
+}
+// Renomme un seul fichier (bouton Renommer du détail audio), en un seul commit
+async function renameOneFile(path) {
+    if (isRenaming) return;
+
+    const file = allFilesCache.find(f => f.path === path);
+    if (!file) return;
+
+    const { base, ext } = splitName(file.name);
+    const result = await openModal({
+        title: 'Renommer le fichier',
+        message: `Fichier : ${file.name}\nExtension conservée : ${ext || '(aucune)'}\nLes espaces sont remplacés par des tirets.`,
+        withInput: true,
+        defaultValue: base,
+        okText: 'Renommer'
+    });
+    if (!result.ok) return;
+
+    let cleaned = cleanFileName(result.value.trim());
+    if (ext && cleaned.endsWith(ext.toLowerCase())) cleaned = cleaned.slice(0, -ext.length);
+    cleaned = cleaned.replace(/^[.\-_]+|[.\-_]+$/g, '');
+    if (!cleaned) {
+        showToast('Nom invalide.', '⚠️');
+        return;
+    }
+
+    const newName = cleaned + ext;
+    if (newName === file.name) return;
+
+    const newPath = `${file._folder}/${newName}`;
+    if (allFilesCache.some(f => f.path === newPath)) {
+        showToast(`"${newName}" existe déjà dans /${file._folder}/.`, '⚠️');
+        return;
+    }
+
+    isRenaming = true;
+    updateRenameButton();
+
+    try {
+        const apiBase = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+        const ref = await ghRequest(`${apiBase}/git/ref/heads/${BRANCH}`);
+        const headSha = ref.object.sha;
+        const headCommit = await ghRequest(`${apiBase}/git/commits/${headSha}`);
+
+        const newTree = await ghRequest(`${apiBase}/git/trees`, 'POST', {
+            base_tree: headCommit.tree.sha,
+            tree: [
+                { path: file.path, mode: '100644', type: 'blob', sha: null },
+                { path: newPath, mode: '100644', type: 'blob', sha: file.sha }
+            ]
+        });
+
+        const newCommit = await ghRequest(`${apiBase}/git/commits`, 'POST', {
+            message: `Rename ${file.name} to ${newName} via Filebase PWA`,
+            tree: newTree.sha,
+            parents: [headSha]
+        });
+
+        await ghRequest(`${apiBase}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
+
+        if (expandedAudioPath === file.path) expandedAudioPath = newPath;
+        file.name = newName;
+        file.path = newPath;
+
+        showToast(`Renommé en ${newName}.`, '✏️');
+        rebuildFolders();
+    } catch (e) {
+        showToast(`Erreur : ${e.message}`, '❌');
+    } finally {
+        isRenaming = false;
+        updateRenameButton();
+    }
+}
+// Clic sur une miniature : copie le lien (ou coche la case en mode sélection)
+function onTileClick(tile) {
+    if (selectMode) {
+        const box = tile.querySelector('input[type="checkbox"]');
+        if (box) box.click();
+        return;
+    }
+    copyUrl(tile.dataset.url);
+}
+function openImageSheet(path) {
+    const file = allFilesCache.find(f => f.path === path);
+    if (!file) return;
+
+    const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(`${file._folder}/${file.name}`)}`;
+    imageSheetCurrent = { file, url, openedAt: Date.now() };
+
+    const img = document.getElementById('imageSheetImg');
+    const dims = document.getElementById('imageSheetDims');
+    document.getElementById('imageSheetName').textContent = file.name;
+    document.getElementById('imageSheetSize').textContent = formatSize(file.size);
+    document.getElementById('imageSheetFolder').textContent = `/${file._folder}/`;
+    document.getElementById('imageSheetFav').textContent = isFavorite(file) ? '★ Favori' : '☆ Favori';
+    dims.textContent = '';
+    img.onload = () => {
+        if (img.naturalWidth) dims.textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
+    };
+    img.alt = file.name;
+    img.src = url;
+
+    const sheet = document.getElementById('imageSheet');
+    sheet.classList.remove('hidden');
+    sheet.classList.add('flex');
+}
+function closeImageSheet() {
+    const sheet = document.getElementById('imageSheet');
+    sheet.classList.add('hidden');
+    sheet.classList.remove('flex');
+
+    const img = document.getElementById('imageSheetImg');
+    img.onload = null;
+    img.removeAttribute('src');
+
+    imageSheetCurrent = null;
 }
 function splitName(name) {
     const dotIndex = name.lastIndexOf('.');
@@ -885,26 +1413,42 @@ function getSelectedFiles() {
 function updateSelectButtons() {
     const selectBtn = document.getElementById('selectBtn');
     const deleteBtn = document.getElementById('deleteSelectedBtn');
-    if (!selectBtn || !deleteBtn) return;
+    const moveBtn = document.getElementById('moveSelectedBtn');
+    const allBtn = document.getElementById('selectAllBtn');
+    if (!selectBtn || !deleteBtn || !moveBtn || !allBtn) return;
 
     const ghostClass = 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1';
     const activeClass = 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono';
     const dangerClass = 'btn btn-xs bg-rose-600 hover:bg-rose-500 text-white border-none gap-1 font-mono';
+    const neutralClass = 'btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 gap-1 font-mono';
+    const spinner = '<span class="loading loading-spinner loading-xs"></span>';
 
     selectBtn.className = selectMode ? activeClass : ghostClass;
     selectBtn.setAttribute('aria-pressed', String(selectMode));
 
     deleteBtn.className = dangerClass;
     deleteBtn.classList.toggle('hidden', !selectMode);
+    moveBtn.className = neutralClass;
+    moveBtn.classList.toggle('hidden', !selectMode);
+    allBtn.className = ghostClass;
+    allBtn.classList.toggle('hidden', !selectMode);
 
     const count = getSelectedFiles().length;
     if (isDeletingMany) {
         deleteBtn.disabled = true;
-        deleteBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Supprimer';
+        moveBtn.disabled = true;
+        deleteBtn.innerHTML = bulkAction === 'delete' ? `${spinner} Supprimer` : `Supprimer (${count})`;
+        moveBtn.innerHTML = bulkAction === 'move' ? `${spinner} Déplacer` : `Déplacer (${count})`;
     } else {
         deleteBtn.disabled = count === 0;
+        moveBtn.disabled = count === 0;
         deleteBtn.textContent = `Supprimer (${count})`;
+        moveBtn.textContent = `Déplacer (${count})`;
     }
+
+    // "Tout" coche les fichiers visibles, "Aucun" les décoche quand ils sont tous cochés
+    const boxes = Array.from(document.querySelectorAll('#filesContainer input[data-select-path]')).filter(box => box.offsetParent !== null);
+    allBtn.textContent = boxes.length > 0 && boxes.every(box => box.checked) ? 'Aucun' : 'Tout';
 }
 function toggleSelectMode() {
     if (isDeletingMany) return;
@@ -914,24 +1458,15 @@ function toggleSelectMode() {
     renderFiles();
     updateSelectButtons();
 }
-// Supprime toute la sélection en un seul commit (API Git Data)
+// Supprime toute la sélection en un seul commit (API Git Data), sans confirmation : une notification permet d'annuler
 async function deleteSelected() {
     if (isDeletingMany) return;
 
     const files = getSelectedFiles();
     if (files.length === 0) return;
 
-    const names = files.slice(0, 5).map(f => `/${f._folder}/${f.name}`);
-    const more = files.length > 5 ? `\n+ ${files.length - 5} autre(s)` : '';
-    const confirmed = await uiConfirm({
-        title: 'Supprimer la sélection',
-        message: `Supprimer définitivement ${files.length} fichier(s) ?\n${names.join('\n')}${more}`,
-        okText: 'Supprimer',
-        danger: true
-    });
-    if (!confirmed) return;
-
     isDeletingMany = true;
+    bulkAction = 'delete';
     updateSelectButtons();
 
     try {
@@ -954,16 +1489,18 @@ async function deleteSelected() {
 
         await ghRequest(`${base}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
 
+        const backup = files.map(f => ({ ...f }));
         const removed = new Set(files.map(f => f.path));
         allFilesCache = allFilesCache.filter(f => !removed.has(f.path));
         selectedPaths = new Set();
 
-        showToast(`${files.length} fichier(s) supprimé(s).`, '🗑️');
         rebuildFolders();
+        showToast(`${files.length} fichier(s) supprimé(s).`, '🗑️', { label: 'Annuler', run: () => restoreFiles(backup) });
     } catch (e) {
         showToast(`Erreur : ${e.message}`, '❌');
     } finally {
         isDeletingMany = false;
+        bulkAction = '';
         updateSelectButtons();
     }
 }
@@ -974,8 +1511,26 @@ setSelectedFiles(event.target.files);
             
         }
 async function setSelectedFiles(fileList) {
-    const files = Array.from(fileList || []);
+    let files = Array.from(fileList || []);
     if (files.length === 0) return;
+
+    // Fichiers trop gros : refus immédiat, avec explication (au lieu d'un échec silencieux à l'envoi)
+    const tooBig = files.filter(f => f.size > MAX_FILE_MB * 1024 * 1024);
+    if (tooBig.length > 0) {
+        const lines = tooBig.slice(0, 5).map(f => `• ${f.name} (${formatSize(f.size)})`);
+        const more = tooBig.length > 5 ? `\n+ ${tooBig.length - 5} autre(s)` : '';
+        await openModal({
+            title: 'Fichier trop volumineux',
+            message: `GitHub refuse les fichiers de plus de ${MAX_FILE_MB} Mo, et l'envoi depuis un téléphone devient peu fiable dès ${WARN_FILE_MB} Mo.\n\n${lines.join('\n')}${more}\n\nAstuce : découpe l'archive en parties de moins de ${WARN_FILE_MB} Mo (zip multi-volumes), puis envoie-les ensemble.`,
+            okText: 'Compris',
+            hideCancel: true
+        });
+        files = files.filter(f => f.size <= MAX_FILE_MB * 1024 * 1024);
+        if (files.length === 0) {
+            document.getElementById('fileInput').value = '';
+            return;
+        }
+    }
 
     let aborted = false;
     let singleInfo = null;
@@ -1008,6 +1563,10 @@ async function setSelectedFiles(fileList) {
         name: singleInfo ? singleInfo.name : cleanFileName(file.name)
     }));
     updateSelectionUI();
+    savePrefs();
+
+    // Envoi immédiat (option "Auto") : plus besoin d'appuyer sur Envoyer
+    if (autoSend && activeToken && !isUploading) uploadFile();
 }
 function updateSelectionUI() {
     const badge = document.getElementById('targetFolderBadge');
@@ -1054,6 +1613,7 @@ function updateFolderToggle() {
         ? 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono'
         : 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono';
     btn.setAttribute('aria-pressed', String(folderMode));
+    savePrefs();
 }
 async function toggleFolderMode() {
     if (isUploading) return;
@@ -1265,11 +1825,18 @@ try {
 }
 
         async function fetchAllFiles() {
-            const container = document.getElementById('filesContainer');
-            if (!activeToken) return;
+const container = document.getElementById('filesContainer');
+if (!activeToken) return;
 
-            container.innerHTML = `<div class="text-center py-6"><span class="loading loading-dots loading-sm text-emerald-500"></span></div>`;
-            allFilesCache = [];
+// Liste déjà affichée (cache du navigateur) : mise à jour discrète, sans vider l'écran
+const hasList = allFilesCache.length > 0;
+if (hasList) {
+    const countEl = document.getElementById('resultCount');
+    if (countEl) countEl.textContent = 'Actualisation...';
+} else {
+    container.innerHTML = `<div class="text-center py-6"><span class="loading loading-dots loading-sm text-emerald-500"></span></div>`;
+}
+const fresh = [];
 
 try {
     // Une seule requête : l'arbre complet du dépôt (au lieu d'une requête par dossier)
@@ -1283,14 +1850,20 @@ try {
         if (item.type !== 'blob') return;
         const parts = item.path.split('/');
         if (parts.length !== 2 || parts[0].startsWith('.')) return;
-        allFilesCache.push({ name: parts[1], path: item.path, sha: item.sha, size: item.size, type: 'file', _folder: parts[0] });
+        fresh.push({ name: parts[1], path: item.path, sha: item.sha, size: item.size, type: 'file', _folder: parts[0] });
     });
 
     if (data.truncated) showToast('Dépôt très volumineux : liste incomplète.', '⚠️');
 
+    allFilesCache = fresh;
     rebuildFolders();
 } catch (e) {
-    container.innerHTML = `<div class="text-center py-6 text-xs text-rose-400">Erreur lors de la lecture des dossiers.</div>`;
+    if (hasList) {
+        showToast('Actualisation impossible : liste en cache affichée.', '⚠️');
+        renderFiles();
+    } else {
+        container.innerHTML = `<div class="text-center py-6 text-xs text-rose-400">Erreur lors de la lecture des dossiers.</div>`;
+    }
 }
         }
 
@@ -1370,7 +1943,7 @@ function resetFilters() {
     renderFiles();
 }
 // Recalcule les dossiers présents à partir du cache, puis redessine filtres et liste
-function rebuildFolders() {
+function rebuildFolders(skipDates = false) {
     const rank = name => {
         const i = FOLDER_ORDER.indexOf(name);
         return i === -1 ? 99 : i;
@@ -1384,16 +1957,35 @@ function rebuildFolders() {
     renderFiles();
     updateRenameButton();
     updateSelectButtons();
+    saveListCache();
+    syncPlayerWithCache();
+    if (!skipDates) loadAudioDates();
 }
 
         function renderFiles() {
 const container = document.getElementById('filesContainer');
+updateSortOptions();
+
+// Durée connue d'un fichier (undefined tant que ses métadonnées ne sont pas lues)
+const getDuration = f => durationCache.get(getRawUrl(f));
+// direction : -1 = plus longs d'abord, 1 = plus courts d'abord ; durées inconnues toujours à la fin
+const byDuration = direction => (a, b) => {
+    const da = getDuration(a);
+    const db = getDuration(b);
+    if (da === undefined && db === undefined) return 0;
+    if (da === undefined) return 1;
+    if (db === undefined) return -1;
+    return (da - db) * direction;
+};
+
 const sorters = {
     'name-asc': (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }),
     'name-desc': (a, b) => b.name.localeCompare(a.name, undefined, { numeric: true }),
     'size-desc': (a, b) => b.size - a.size,
     'size-asc': (a, b) => a.size - b.size,
-    'folder-asc': (a, b) => a._folder.localeCompare(b._folder) || a.name.localeCompare(b.name, undefined, { numeric: true })
+    'folder-asc': (a, b) => a._folder.localeCompare(b._folder) || a.name.localeCompare(b.name, undefined, { numeric: true }),
+    'duration-desc': byDuration(-1),
+    'duration-asc': byDuration(1)
 };
 const filtered = allFilesCache
     .filter(f => currentFilter === 'all' || f._folder === currentFilter)
@@ -1401,8 +1993,39 @@ const filtered = allFilesCache
     .filter(f => !currentSearch || f.name.toLowerCase().includes(currentSearch) || f._folder.toLowerCase().includes(currentSearch))
     .sort(sorters[currentSort] || sorters['name-asc']);
 
+// Favoris toujours en tête (le tri choisi reste appliqué à l'intérieur de chaque groupe)
+filtered.sort((a, b) => Number(isFavorite(b)) - Number(isFavorite(a)));
+
 const countEl = document.getElementById('resultCount');
 if (countEl) countEl.textContent = `${filtered.length} / ${allFilesCache.length} fichier(s)`;
+
+// Onglet Images : grille de miniatures carrées sur 3 colonnes (liste classique en mode renommage)
+const imageGrid = currentFilter === 'images' && !renameMode;
+container.className = imageGrid && filtered.length > 0 ? 'grid grid-cols-3 gap-2' : 'space-y-2.5';
+
+// Onglet Audio : favoris d'abord, puis jours de modification du plus récent au plus ancien (date inconnue à la fin)
+const audioGrouped = currentFilter === 'audio';
+const audioDayCounts = {};
+if (audioGrouped) {
+    filtered.sort((a, b) => {
+        const fa = isFavorite(a);
+        const fb = isFavorite(b);
+        if (fa !== fb) return fa ? -1 : 1;
+        if (fa) return 0;
+        return getAudioDayKey(b).localeCompare(getAudioDayKey(a));
+    });
+    filtered.forEach(f => {
+        const key = getAudioGroupKey(f);
+        audioDayCounts[key] = (audioDayCounts[key] || 0) + 1;
+    });
+    // File d'attente du lecteur : l'ordre affiché
+    audioQueue = filtered.slice();
+}
+let lastGroupKey = null;
+
+savePrefs();
+// Une fois la liste dessinée : met à jour les boutons Tout / Supprimer / Déplacer
+queueMicrotask(updateSelectButtons);
 
 if (filtered.length === 0) {
     const message = currentSearch ? 'Aucun fichier ne correspond à la recherche.' : 'Aucun fichier trouvé dans cette catégorie.';
@@ -1435,7 +2058,7 @@ let previewHtml = '';
 let playerHtml = '';
 if (file._folder === 'audio') {
     previewHtml = `<div class="w-10 h-10 shrink-0 rounded bg-zinc-950 border border-zinc-800 flex items-center justify-center text-base text-emerald-400">♪</div>`;
-    playerHtml = `<audio controls preload="metadata" src="${safeUrl}" onloadedmetadata="setDuration(this)" class="w-full h-10 rounded"></audio>`;
+    playerHtml = `<audio controls preload="metadata" src="${safeUrl}" onloadedmetadata="setDuration(this)" onplay="player.pause()" class="w-full h-10 rounded"></audio>`;
 } else if (file._folder === 'images') {
     previewHtml = `<img src="${safeUrl}" class="w-10 h-10 shrink-0 object-cover rounded border border-zinc-800" />`;
 } else if (file._folder === 'video') {
@@ -1444,6 +2067,88 @@ if (file._folder === 'audio') {
     previewHtml = `<div class="w-10 h-10 shrink-0 rounded bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400 uppercase">${escapeHtml(file.name.split('.').pop())}</div>`;
 }
 
+// Onglet Images : miniature carrée (clic = copier le lien, appui long = sélection, bouton i = détails)
+if (imageGrid) {
+    const fav = isFavorite(file);
+    return `
+        <div data-row data-tile data-action="tile" data-path="${escapeHtml(file.path)}" data-url="${safeUrl}" role="button" tabindex="0" aria-label="Copier le lien de ${safeName}" class="glass-row relative aspect-square overflow-hidden rounded-xl border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} cursor-pointer select-none">
+            <img src="${safeUrl}" alt="${safeName}" loading="lazy" draggable="false" style="-webkit-touch-callout: none;" class="w-full h-full object-cover pointer-events-none" />
+            ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success absolute top-1.5 left-1.5" />` : ''}
+            ${fav ? `<span class="absolute bottom-1.5 left-1.5 text-sm leading-none pointer-events-none" style="color: #ffd300;">★</span>` : ''}
+            <button type="button" data-action="info" data-path="${escapeHtml(file.path)}" aria-label="Détails de ${safeName}" title="Détails" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 border border-white/20 text-zinc-100 text-[11px] leading-none flex items-center justify-center">i</button>
+        </div>
+    `;
+}
+// Onglet Audio : ligne compacte (play/pause + copier le lien + nom + durée + favori), détail au clic sur le nom
+if (currentFilter === 'audio' && file._folder === 'audio') {
+    const isOpen = expandedAudioPath === file.path;
+    const fav = isFavorite(file);
+    const playing = isTrackPlaying(file);
+    const compactName = renameMode
+        ? nameHtml
+        : `<button type="button" data-action="toggle" data-path="${escapeHtml(file.path)}" aria-expanded="${isOpen}" style="-webkit-touch-callout: none;" class="flex-1 min-w-0 text-left text-xs font-mono font-semibold text-zinc-100 truncate select-none">${safeName}</button>`;
+
+    // Groupe : favoris, puis jour de modification (en-tête cliquable pour replier)
+    const groupKey = getAudioGroupKey(file);
+    const groupId = groupKey || 'unknown';
+    const collapsed = collapsedDays.has(groupId);
+    let groupHeader = '';
+    if (groupKey !== lastGroupKey) {
+        lastGroupKey = groupKey;
+        const groupLabel = groupKey === 'fav' ? '★ Favoris' : formatDayLabel(groupKey);
+        groupHeader = `
+            <button type="button" data-action="group" data-group="${escapeHtml(groupId)}" aria-expanded="${!collapsed}" class="w-full flex items-center gap-2 pt-1 text-left">
+                <span data-chev class="text-[11px] text-zinc-300 w-3 shrink-0">${collapsed ? '▸' : '▾'}</span>
+                <span class="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-300">${escapeHtml(groupLabel)}</span>
+                <span class="text-[11px] font-mono text-zinc-400">(${audioDayCounts[groupKey]})</span>
+                <span class="day-line"></span>
+            </button>
+        `;
+    }
+
+    return `${groupHeader}
+        <div data-row data-path="${escapeHtml(file.path)}" data-day-row="${escapeHtml(groupId)}" style="${collapsed ? 'display: none;' : ''}" class="glass-row border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-2.5 flex flex-col gap-2 transition-colors">
+            <div class="flex items-center gap-2.5 min-w-0">
+                ${selectMode ? `<input type="checkbox" data-select-path="${escapeHtml(file.path)}" ${selectedPaths.has(file.path) ? 'checked' : ''} aria-label="Sélectionner ${safeName}" class="checkbox checkbox-sm checkbox-success shrink-0" />` : ''}
+                <button type="button" data-action="play" data-playing="${playing}" aria-pressed="${playing}" aria-label="Lecture / pause ${safeName}" class="play-btn">
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
+                </button>
+                <button type="button" data-action="copy" data-url="${safeUrl}" aria-label="Copier le lien de ${safeName}" title="Copier le lien" class="play-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                ${cachedDuration ? '' : `<audio preload="metadata" src="${safeUrl}" onloadedmetadata="setDuration(this)" class="hidden"></audio>`}
+                ${compactName}
+                <span data-duration class="text-[11px] text-emerald-400 font-mono shrink-0">${durationText}</span>
+                <button type="button" data-action="fav" data-sha="${escapeHtml(file.sha)}" aria-pressed="${fav}" aria-label="Favori ${safeName}" title="Favori" style="${fav ? 'color: #ffd300;' : ''}" class="fav-btn">${fav ? '★' : '☆'}</button>
+            </div>
+
+            <div data-details class="${isOpen ? '' : 'hidden'} space-y-2">
+                <p class="text-xs font-mono text-zinc-100 break-all leading-snug">${safeName}</p>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span class="text-[11px] text-zinc-400 font-mono">${sizeLabel}</span>
+                    <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">/${safeFolder}/</span>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                    <button data-action="rename" data-path="${escapeHtml(file.path)}" aria-label="Renommer ${safeName}" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                        Renommer
+                    </button>
+                    <button data-action="download" data-url="${safeUrl}" data-name="${safeName}" aria-label="Télécharger ${safeName}" title="Télécharger" class="btn btn-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700 h-8 px-2.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button data-action="base64" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
+                        Base64
+                    </button>
+                    <button data-action="delete" data-folder="${safeFolder}" data-name="${safeName}" data-sha="${escapeHtml(file.sha)}" aria-label="Supprimer ${safeName}" title="Supprimer" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+const favorite = isFavorite(file);
 return `
     <div data-row class="glass-row border ${selectedPaths.has(file.path) ? 'border-emerald-500/60' : 'border-zinc-800/90'} hover:border-zinc-700 rounded-xl p-3 flex flex-col gap-3 transition-colors">
         <div class="flex items-start gap-3 min-w-0">
@@ -1471,6 +2176,7 @@ return `
             <button data-action="base64" data-url="${safeUrl}" class="btn btn-xs bg-zinc-800 hover:bg-emerald-600 text-zinc-200 hover:text-white border-zinc-700 h-8 px-2.5 font-mono">
                 Base64
             </button>
+            <button data-action="fav" data-sha="${escapeHtml(file.sha)}" aria-pressed="${favorite}" aria-label="Favori ${safeName}" title="Favori" style="${favorite ? 'color: #ffd300;' : ''}" class="fav-btn">${favorite ? '★' : '☆'}</button>
             <button data-action="delete" data-folder="${safeFolder}" data-name="${safeName}" data-sha="${escapeHtml(file.sha)}" aria-label="Supprimer ${safeName}" title="Supprimer" class="btn btn-xs btn-ghost text-zinc-500 hover:text-rose-400 h-8 px-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             </button>
@@ -1542,15 +2248,10 @@ async function downloadFile(url, fileName, btnElement) {
 }
 
         async function deleteFile(folder, fileName, sha) {
-const confirmed = await uiConfirm({
-    title: 'Supprimer le fichier',
-    message: `Supprimer définitivement "${fileName}" de /${folder}/ ?`,
-    okText: 'Supprimer',
-    danger: true
-});
-if (!confirmed) return;
 
 try {
+    const removed = allFilesCache.find(f => f._folder === folder && f.name === fileName);
+
     const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${encodePath(`${folder}/${fileName}`)}`, {
         method: 'DELETE',
         headers: {
@@ -1565,9 +2266,10 @@ try {
     });
 
     if (res.ok) {
-        showToast(`${fileName} supprimé.`, '🗑️');
         allFilesCache = allFilesCache.filter(f => !(f._folder === folder && f.name === fileName));
         rebuildFolders();
+        // Un seul appui suffit : la notification permet d'annuler pendant 8 s
+        showToast(`${fileName} supprimé.`, '🗑️', removed ? { label: 'Annuler', run: () => restoreFiles([removed]) } : null);
     } else {
         showToast('Erreur lors de la suppression.', '❌');
     }
@@ -1577,17 +2279,35 @@ try {
         }
 
         let toastTimeout;
-        function showToast(msg, icon = '✅') {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            document.getElementById('toastIcon').textContent = icon;
-            
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+let toastActionFn = null;
+function showToast(msg, icon = '✅', action = null) {
+    const toast = document.getElementById('toast');
+    const actionBtn = document.getElementById('toastAction');
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = icon;
+
+    // Bouton d'action facultatif (ex. Annuler) : la notification reste 8 s et devient cliquable
+    toastActionFn = action ? action.run : null;
+    actionBtn.textContent = action ? action.label : '';
+    actionBtn.classList.toggle('hidden', !action);
+    toast.classList.toggle('pointer-events-none', !action);
+
+    toast.classList.remove('-translate-y-32', 'opacity-0');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.add('-translate-y-32', 'opacity-0', 'pointer-events-none');
+        toastActionFn = null;
+    }, action ? 8000 : 3000);
+}
+(() => {
+    document.getElementById('toastAction').addEventListener('click', () => {
+        const run = toastActionFn;
+        toastActionFn = null;
+        clearTimeout(toastTimeout);
+        document.getElementById('toast').classList.add('-translate-y-32', 'opacity-0', 'pointer-events-none');
+        if (run) run();
+    });
+})();
 let modalResolve = null;
 let renameMode = false;
 // Noms saisis en mode renommage : { chemin du fichier: texte saisi }
@@ -1602,23 +2322,549 @@ let folderMode = false;
 let lastCustomFolder = '';
 // '*' = toutes les extensions
 let currentExt = '*';
-// Durées déjà lues (clé : URL du fichier, valeur : secondes), pour les garder après un nouveau rendu
+// Durées déjà lues (clé : URL du fichier, valeur : secondes), conservées dans le navigateur
 let durationCache = new Map();
+try {
+    durationCache = new Map(JSON.parse(localStorage.getItem('filebase_durations_v1') || '[]'));
+} catch (e) {
+    durationCache = new Map();
+}
+let durationResortTimer = null;
+const AUDIO_DATES_KEY = 'filebase_audio_dates_v1';
+// Dates de dernière modification des sons (clé : "chemin|sha", valeur : date ISO), conservées dans le navigateur
+let audioDates = new Map();
+try {
+    audioDates = new Map(JSON.parse(localStorage.getItem(AUDIO_DATES_KEY) || '[]'));
+} catch (e) {
+    audioDates = new Map();
+}
+let isLoadingDates = false;
+// Chemin du fichier audio dont le détail est ouvert (onglet Audio), un seul à la fois
+let expandedAudioPath = null;
+// Vrai quand un appui long vient d'ouvrir la fenêtre de détails (le clic qui suit est alors ignoré)
+let longPressFired = false;
+// Image dont les détails sont ouverts : { file, url, openedAt } ou null
+let imageSheetCurrent = null;
+// Envoi immédiat dès la validation du nom
+let autoSend = false;
+// Lecture enchaînée : le son suivant démarre quand le précédent se termine
+let autoNext = true;
+// Groupes de l'onglet Audio repliés ('fav', 'unknown' ou jour AAAA-MM-JJ)
+let collapsedDays = new Set();
+// Favoris, identifiés par le sha du fichier (ils suivent donc un renommage ou un déplacement)
+let favorites = new Set();
+try {
+    favorites = new Set(JSON.parse(localStorage.getItem('filebase_favs_v1') || '[]'));
+} catch (e) {
+    favorites = new Set();
+}
+// Sons de l'onglet Audio dans l'ordre affiché (sert au son précédent / suivant)
+let audioQueue = [];
+// Son chargé dans le lecteur global : { path, name, sha } ou null
+let currentTrack = null;
+let isSeeking = false;
+let durationSaveTimer = null;
+// Action de groupe en cours : 'delete', 'move' ou ''
+let bulkAction = '';
+// Lecteur audio unique : la lecture continue même quand la liste est redessinée
+const player = new Audio();
+player.preload = 'metadata';
+(() => {
+    player.addEventListener('play', updateMiniPlayer);
+    player.addEventListener('pause', updateMiniPlayer);
+    player.addEventListener('ended', () => {
+        if (autoNext && playAdjacent(1)) return;
+        updateMiniPlayer();
+    });
+    player.addEventListener('timeupdate', updateMiniProgress);
+    player.addEventListener('loadedmetadata', updateMiniProgress);
+    player.addEventListener('durationchange', updateMiniProgress);
+    player.addEventListener('error', () => {
+        if (currentTrack) showToast('Lecture impossible.', '❌');
+    });
+
+    // Commandes de l'écran de verrouillage / des notifications du téléphone
+    try {
+        navigator.mediaSession.setActionHandler('play', () => player.play().catch(() => {}));
+        navigator.mediaSession.setActionHandler('pause', () => player.pause());
+        navigator.mediaSession.setActionHandler('nexttrack', () => playAdjacent(1));
+        navigator.mediaSession.setActionHandler('previoustrack', () => playAdjacent(-1));
+    } catch (e) {}
+})();
+(() => {
+    const mini = document.getElementById('miniPlayer');
+    const seek = document.getElementById('miniSeek');
+
+    mini.addEventListener('click', event => {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+
+        if (btn.id === 'miniPlay') {
+            if (player.paused) player.play().catch(() => showToast('Lecture impossible.', '❌'));
+            else player.pause();
+        } else if (btn.id === 'miniPrev') {
+            // Plus de 3 s écoulées : retour au début du son, sinon son précédent
+            if (player.currentTime > 3 || !playAdjacent(-1)) player.currentTime = 0;
+        } else if (btn.id === 'miniNext') {
+            playAdjacent(1);
+        } else if (btn.id === 'miniAuto') {
+            autoNext = !autoNext;
+            savePrefs();
+            updateMiniPlayer();
+        } else if (btn.id === 'miniClose') {
+            stopPlayer();
+        }
+    });
+
+    // Barre de progression : le temps s'affiche pendant le déplacement, la position est appliquée au relâchement
+    seek.addEventListener('input', () => {
+        isSeeking = true;
+        const d = player.duration;
+        if (isFinite(d) && d > 0) {
+            document.getElementById('miniTime').textContent = formatDuration((seek.value / 1000) * d) || '0:00';
+        }
+    });
+    seek.addEventListener('change', () => {
+        const d = player.duration;
+        if (isFinite(d) && d > 0) player.currentTime = (seek.value / 1000) * d;
+        isSeeking = false;
+    });
+})();
+// Coller une image ou un fichier (Ctrl+V) lance directement l'envoi du nom
+document.addEventListener('paste', event => {
+    if (!activeToken || isUploading || modalResolve) return;
+
+    const files = event.clipboardData && event.clipboardData.files;
+    if (!files || files.length === 0) return;
+    event.preventDefault();
+
+    // Les captures collées s'appellent toutes "image.png" : on leur donne un nom daté
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+    const list = Array.from(files).map((f, i) => {
+        if (!/^image\.[a-z0-9]+$/i.test(f.name)) return f;
+        const suffix = files.length > 1 ? `-${i + 1}` : '';
+        return new File([f], `capture-${stamp}${suffix}.${f.name.split('.').pop()}`, { type: f.type });
+    });
+
+    setSelectedFiles(list);
+});
+function loadPrefs() {
+    try {
+        return JSON.parse(localStorage.getItem('filebase_prefs_v1') || '{}') || {};
+    } catch (e) {
+        return {};
+    }
+}
+// Réglages conservés dans le navigateur : onglet, tri, recherche, mode Dossier, dernier dossier, envoi auto, lecture enchaînée, groupes repliés
+function savePrefs() {
+    try {
+        localStorage.setItem('filebase_prefs_v1', JSON.stringify({
+            filter: currentFilter,
+            sort: currentSort,
+            search: currentSearch,
+            folderMode,
+            lastFolder: lastCustomFolder,
+            autoSend,
+            autoNext,
+            collapsed: [...collapsedDays]
+        }));
+    } catch (e) {}
+}
+// Rétablit les réglages au démarrage
+function applySavedUI() {
+    const prefs = loadPrefs();
+    if (typeof prefs.filter === 'string') currentFilter = prefs.filter;
+    if (typeof prefs.sort === 'string') currentSort = prefs.sort;
+    if (typeof prefs.search === 'string') currentSearch = prefs.search;
+    folderMode = Boolean(prefs.folderMode);
+    lastCustomFolder = typeof prefs.lastFolder === 'string' ? prefs.lastFolder : '';
+    autoSend = Boolean(prefs.autoSend);
+    autoNext = prefs.autoNext !== false;
+    collapsedDays = new Set(Array.isArray(prefs.collapsed) ? prefs.collapsed : []);
+
+    document.getElementById('searchInput').value = currentSearch;
+    updateFolderToggle();
+    updateAutoToggle();
+    updateSelectionUI();
+}
+function saveListCache() {
+    try {
+        localStorage.setItem('filebase_list_v1', JSON.stringify(allFilesCache.map(f => ({
+            name: f.name,
+            path: f.path,
+            sha: f.sha,
+            size: f.size,
+            _folder: f._folder
+        }))));
+    } catch (e) {}
+}
+function loadListCache() {
+    try {
+        const data = JSON.parse(localStorage.getItem('filebase_list_v1') || '[]');
+        return Array.isArray(data) ? data.map(f => ({ ...f, type: 'file' })) : [];
+    } catch (e) {
+        return [];
+    }
+}
+function renderCachedList() {
+    if (!activeToken) return;
+
+    const cached = loadListCache();
+    if (cached.length === 0) return;
+
+    allFilesCache = cached;
+    rebuildFolders(true);
+}
+function getRawUrl(file) {
+    return `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(`${file._folder}/${file.name}`)}`;
+}
+function scheduleSaveDurations() {
+    clearTimeout(durationSaveTimer);
+    durationSaveTimer = setTimeout(() => {
+        // Ne garde que les durées des fichiers encore présents
+        if (allFilesCache.length > 0) {
+            const valid = new Set(allFilesCache.map(getRawUrl));
+            for (const key of [...durationCache.keys()]) {
+                if (!valid.has(key)) durationCache.delete(key);
+            }
+        }
+        try {
+            localStorage.setItem('filebase_durations_v1', JSON.stringify([...durationCache]));
+        } catch (e) {}
+    }, 1000);
+}
+function isFavorite(file) {
+    return favorites.has(file.sha);
+}
+function toggleFavorite(sha) {
+    if (!sha) return;
+
+    const on = !favorites.has(sha);
+    if (on) favorites.add(sha);
+    else favorites.delete(sha);
+    try {
+        localStorage.setItem('filebase_favs_v1', JSON.stringify([...favorites]));
+    } catch (e) {}
+
+    // Icône mise à jour tout de suite
+    document.querySelectorAll('#filesContainer [data-action="fav"]').forEach(btn => {
+        if (btn.dataset.sha !== sha) return;
+        btn.textContent = on ? '★' : '☆';
+        btn.style.color = on ? '#ffd300' : '';
+        btn.setAttribute('aria-pressed', String(on));
+    });
+
+    // La liste est réordonnée (favoris en tête), sauf si un lecteur natif de la liste est en cours de lecture
+    const nativePlaying = Array.from(document.querySelectorAll('#filesContainer audio')).some(a => !a.paused);
+    if (!nativePlaying) renderFiles();
+}
+// Groupe d'un son : 'fav' pour les favoris, sinon son jour de modification ('' si inconnu)
+function getAudioGroupKey(file) {
+    return isFavorite(file) ? 'fav' : getAudioDayKey(file);
+}
+// Replie / déplie un groupe sans redessiner la liste
+function toggleDayGroup(btn) {
+    const id = btn.dataset.group;
+    const collapsed = !collapsedDays.has(id);
+    if (collapsed) collapsedDays.add(id);
+    else collapsedDays.delete(id);
+
+    document.querySelectorAll('#filesContainer [data-day-row]').forEach(row => {
+        if (row.dataset.dayRow === id) row.style.display = collapsed ? 'none' : '';
+    });
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    const chev = btn.querySelector('[data-chev]');
+    if (chev) chev.textContent = collapsed ? '▸' : '▾';
+
+    savePrefs();
+    updateSelectButtons();
+}
+function toggleAutoSend() {
+    autoSend = !autoSend;
+    updateAutoToggle();
+    savePrefs();
+    showToast(autoSend ? 'Envoi automatique activé : les fichiers partent dès la validation.' : 'Envoi automatique désactivé.', autoSend ? '⚡' : '⏸️');
+}
+function updateAutoToggle() {
+    const btn = document.getElementById('autoSendBtn');
+    if (!btn) return;
+
+    btn.className = autoSend
+        ? 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none gap-1 font-mono'
+        : 'btn btn-xs btn-ghost text-zinc-400 hover:text-white gap-1 font-mono';
+    btn.setAttribute('aria-pressed', String(autoSend));
+}
+function isTrackPlaying(file) {
+    return Boolean(currentTrack) && currentTrack.path === file.path && !player.paused;
+}
+// Lance un son dans le lecteur global (le mini-lecteur du bas le suit)
+function playTrack(file) {
+    if (!file) return;
+    const url = getRawUrl(file);
+
+    // Un seul son à la fois : les lecteurs natifs de la liste sont mis en pause
+    document.querySelectorAll('#filesContainer audio').forEach(a => a.pause());
+
+    if (!currentTrack || currentTrack.path !== file.path || player.getAttribute('src') !== url) {
+        currentTrack = { path: file.path, name: file.name, sha: file.sha };
+        player.src = url;
+    }
+
+    player.play().catch(() => showToast('Lecture impossible.', '❌'));
+    updateMiniPlayer();
+}
+// Son précédent (-1) ou suivant (1) dans l'ordre affiché ; renvoie false s'il n'y en a pas
+function playAdjacent(direction) {
+    if (!currentTrack) return false;
+
+    const index = audioQueue.findIndex(f => f.path === currentTrack.path);
+    if (index === -1) return false;
+
+    // Ignore les sons supprimés ou rangés dans un groupe replié
+    let i = index + direction;
+    while (audioQueue[i] && (!allFilesCache.some(f => f.path === audioQueue[i].path) || collapsedDays.has(getAudioGroupKey(audioQueue[i]) || 'unknown'))) {
+        i += direction;
+    }
+
+    const target = audioQueue[i];
+    if (!target) return false;
+
+    playTrack(target);
+    return true;
+}
+function stopPlayer() {
+    currentTrack = null;
+    player.pause();
+    player.removeAttribute('src');
+    player.load();
+    updateMiniPlayer();
+    updatePlayIcon();
+}
+// Après suppression, renommage ou déplacement : le lecteur suit le fichier (même contenu) ou s'arrête
+function syncPlayerWithCache() {
+    if (!currentTrack) return;
+    if (allFilesCache.some(f => f.path === currentTrack.path)) return;
+
+    const moved = allFilesCache.find(f => f.sha === currentTrack.sha);
+    if (moved) {
+        currentTrack.path = moved.path;
+        currentTrack.name = moved.name;
+        updateMiniPlayer();
+    } else {
+        stopPlayer();
+    }
+}
+function updateMiniPlayer() {
+    const mini = document.getElementById('miniPlayer');
+    if (!mini) return;
+
+    const active = Boolean(currentTrack);
+    mini.classList.toggle('hidden', !active);
+    // Laisse la place du lecteur en bas de page
+    document.body.style.paddingBottom = active ? '7.5rem' : '';
+    if (!active) return;
+
+    document.getElementById('miniName').textContent = currentTrack.name;
+
+    const playBtn = document.getElementById('miniPlay');
+    playBtn.dataset.playing = String(!player.paused);
+    playBtn.setAttribute('aria-pressed', String(!player.paused));
+
+    const auto = document.getElementById('miniAuto');
+    auto.className = autoNext
+        ? 'btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white border-none font-mono'
+        : 'btn btn-xs btn-ghost text-zinc-400 hover:text-white font-mono';
+    auto.setAttribute('aria-pressed', String(autoNext));
+
+    try {
+        if (window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({ title: currentTrack.name, artist: 'Filebase' });
+    } catch (e) {}
+
+    updatePlayIcon();
+    updateMiniProgress();
+}
+function updateMiniProgress() {
+    const seek = document.getElementById('miniSeek');
+    if (!seek) return;
+
+    const d = player.duration;
+    const t = player.currentTime;
+    const known = isFinite(d) && d > 0;
+
+    document.getElementById('miniTime').textContent = formatDuration(t) || '0:00';
+    document.getElementById('miniDur').textContent = known ? formatDuration(d) : '0:00';
+    if (!isSeeking) seek.value = known ? Math.round((t / d) * 1000) : 0;
+}
+// Appui long : entre en mode sélection avec ce fichier déjà coché (comme une galerie)
+function enterSelectModeWith(path) {
+    if (isDeletingMany) return;
+
+    selectMode = true;
+    selectedPaths = new Set([path]);
+    renderFiles();
+    updateSelectButtons();
+}
+// Coche (ou décoche) tous les fichiers visibles, groupes repliés exclus
+function toggleSelectAll() {
+    if (!selectMode) return;
+
+    const boxes = Array.from(document.querySelectorAll('#filesContainer input[data-select-path]')).filter(box => box.offsetParent !== null);
+    if (boxes.length === 0) return;
+
+    const allChecked = boxes.every(box => box.checked);
+    boxes.forEach(box => {
+        box.checked = !allChecked;
+        if (box.checked) selectedPaths.add(box.dataset.selectPath);
+        else selectedPaths.delete(box.dataset.selectPath);
+
+        const row = box.closest('[data-row]');
+        if (row) {
+            row.classList.toggle('border-emerald-500/60', box.checked);
+            row.classList.toggle('border-zinc-800/90', !box.checked);
+        }
+    });
+    updateSelectButtons();
+}
+// Déplace la sélection vers un dossier, en un seul commit (aucun fichier n'est renvoyé)
+async function moveSelected() {
+    if (isDeletingMany) return;
+
+    const files = getSelectedFiles();
+    if (files.length === 0) return;
+
+    const result = await openModal({
+        title: 'Déplacer vers un dossier',
+        message: `${files.length} fichier(s) sélectionné(s). Le dossier est créé s'il n'existe pas.`,
+        withFolder: true,
+        folderDefault: lastCustomFolder,
+        existingFolders: FOLDERS,
+        okText: 'Déplacer'
+    });
+    if (!result.ok) return;
+
+    const dest = cleanFolderName(result.folder);
+    if (!dest) {
+        showToast('Choisis un dossier de destination.', '⚠️');
+        return;
+    }
+
+    const moves = files
+        .filter(f => f._folder !== dest)
+        .map(f => ({ file: f, newPath: `${dest}/${f.name}` }));
+    if (moves.length === 0) {
+        showToast(`Déjà dans /${dest}/.`, 'ℹ️');
+        return;
+    }
+
+    // Vérifie les conflits de noms avant d'envoyer quoi que ce soit
+    const movingPaths = new Set(moves.map(m => m.file.path));
+    const taken = new Set(allFilesCache.filter(f => !movingPaths.has(f.path)).map(f => f.path));
+    const seen = new Set();
+    for (const m of moves) {
+        if (taken.has(m.newPath) || seen.has(m.newPath)) {
+            showToast(`"${m.file.name}" existe déjà dans /${dest}/.`, '⚠️');
+            return;
+        }
+        seen.add(m.newPath);
+    }
+
+    isDeletingMany = true;
+    bulkAction = 'move';
+    updateSelectButtons();
+
+    try {
+        const base = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+        const ref = await ghRequest(`${base}/git/ref/heads/${BRANCH}`);
+        const headSha = ref.object.sha;
+        const headCommit = await ghRequest(`${base}/git/commits/${headSha}`);
+
+        // Anciens chemins supprimés (sha null), nouveaux chemins pointant vers le même contenu
+        const entries = {};
+        moves.forEach(m => { entries[m.file.path] = null; });
+        moves.forEach(m => { entries[m.newPath] = m.file.sha; });
+
+        const newTree = await ghRequest(`${base}/git/trees`, 'POST', {
+            base_tree: headCommit.tree.sha,
+            tree: Object.entries(entries).map(([path, sha]) => ({ path, mode: '100644', type: 'blob', sha }))
+        });
+
+        const newCommit = await ghRequest(`${base}/git/commits`, 'POST', {
+            message: `Move ${moves.length} file(s) to /${dest}/ via Filebase PWA`,
+            tree: newTree.sha,
+            parents: [headSha]
+        });
+
+        await ghRequest(`${base}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
+
+        moves.forEach(m => {
+            m.file._folder = dest;
+            m.file.path = m.newPath;
+        });
+        lastCustomFolder = dest;
+        selectedPaths = new Set();
+
+        showToast(`${moves.length} fichier(s) déplacé(s) vers /${dest}/.`, '📂');
+        rebuildFolders();
+    } catch (e) {
+        showToast(`Erreur : ${e.message}`, '❌');
+    } finally {
+        isDeletingMany = false;
+        bulkAction = '';
+        updateSelectButtons();
+    }
+}
+// Annule une suppression : le contenu existe toujours dans Git, on le rattache simplement à son ancien chemin
+async function restoreFiles(files) {
+    try {
+        const base = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+        const ref = await ghRequest(`${base}/git/ref/heads/${BRANCH}`);
+        const headSha = ref.object.sha;
+        const headCommit = await ghRequest(`${base}/git/commits/${headSha}`);
+
+        const newTree = await ghRequest(`${base}/git/trees`, 'POST', {
+            base_tree: headCommit.tree.sha,
+            tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', sha: f.sha }))
+        });
+
+        const newCommit = await ghRequest(`${base}/git/commits`, 'POST', {
+            message: `Restore ${files.length} file(s) via Filebase PWA`,
+            tree: newTree.sha,
+            parents: [headSha]
+        });
+
+        await ghRequest(`${base}/git/refs/heads/${BRANCH}`, 'PATCH', { sha: newCommit.sha });
+
+        files.forEach(f => {
+            if (!allFilesCache.some(x => x.path === f.path)) allFilesCache.push(f);
+        });
+
+        showToast(`${files.length} fichier(s) rétabli(s).`, '↩️');
+        rebuildFolders();
+    } catch (e) {
+        showToast(`Rétablissement impossible : ${e.message}`, '❌');
+    }
+}
 // Fenêtre interne (remplace prompt / confirm). Renvoie une promesse { ok, value, folder }
-function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false, withFolder = false, folderDefault = '', existingFolders = [] }) {
+function openModal({ title, message = '', withInput = false, defaultValue = '', okText = 'OK', cancelText = 'Annuler', danger = false, withFolder = false, folderDefault = '', existingFolders = [], hideCancel = false }) {
     // Si une fenêtre est déjà ouverte, elle est annulée
     if (modalResolve) closeModal(false);
 
     const modal = document.getElementById('modal');
     const input = document.getElementById('modalInput');
     const okBtn = document.getElementById('modalOk');
+    const cancelBtn = document.getElementById('modalCancel');
     const folderWrap = document.getElementById('modalFolderWrap');
     const folderSelect = document.getElementById('modalFolderSelect');
     const folderInput = document.getElementById('modalFolderInput');
 
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalMessage').textContent = message;
-    document.getElementById('modalCancel').textContent = cancelText;
+    cancelBtn.textContent = cancelText;
+    cancelBtn.classList.toggle('hidden', hideCancel);
     okBtn.textContent = okText;
     okBtn.className = danger
         ? 'btn btn-sm bg-rose-600 hover:bg-rose-500 text-white border-none h-10 px-5 font-semibold'
