@@ -7,6 +7,8 @@
     <!-- Tailwind CSS v4 & DaisyUI v5 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
     <style>
 body {
     background-color: #050507;
@@ -536,8 +538,10 @@ const GENERIC_FOLDERS = new Set([
 
 window.addEventListener('DOMContentLoaded', async () => {
     applySavedUI();
+    registerServiceWorker();
     // Affichage instantané : la dernière liste connue s'affiche tout de suite, puis elle est mise à jour
     renderCachedList();
+    receiveSharedFiles();
     if (activeToken) {
         document.getElementById('authPanel').classList.add('hidden');
         document.getElementById('ghTokenInput').value = activeToken;
@@ -2516,6 +2520,39 @@ function renderCachedList() {
 
     allFilesCache = cached;
     rebuildFolders(true);
+}
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+}
+// Fichiers reçus par le menu "Partager" du téléphone : le service worker les a stockés, on les envoie dans le parcours habituel
+async function receiveSharedFiles() {
+    if (!('caches' in window)) return;
+    if (!new URLSearchParams(location.search).has('shared')) return;
+
+    // Nettoie l'adresse pour qu'un rechargement ne relance pas la réception
+    history.replaceState(null, '', location.pathname);
+
+    try {
+        const cache = await caches.open('share-Filebase');
+        const keys = await cache.keys();
+        const files = [];
+
+        for (const request of keys) {
+            const response = await cache.match(request);
+            if (!response) continue;
+            const blob = await response.blob();
+            const name = decodeURIComponent(response.headers.get('X-Filename') || 'fichier');
+            files.push(new File([blob], name, { type: blob.type }));
+            await cache.delete(request);
+        }
+
+        if (files.length > 0) setSelectedFiles(files);
+        else showToast('Aucun fichier reçu.', '⚠️');
+    } catch (e) {
+        showToast('Réception du fichier partagé impossible.', '❌');
+    }
 }
 function getRawUrl(file) {
     return `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${encodePath(`${file._folder}/${file.name}`)}`;
